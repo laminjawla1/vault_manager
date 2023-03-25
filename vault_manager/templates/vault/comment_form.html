@@ -1,0 +1,26 @@
+{% extends 'blog/layout.html' %}
+{% load crispy_forms_tags %}
+{% block body %}
+    <article class="media content-section">
+        <img class="rounded-circle article-img" src="{{ post.author.account.image.url }}" alt="image">
+        <div class="media-body">
+            <div class="article-metadata">
+            <a class="mr-2" href="{% url 'user_posts' post.author.username %}">{{ object.author }}</a>
+            <small class="text-muted">{{ post.date_posted|date:"F d, Y" }}</small>
+            </div>
+            <h2 class="article-title"> {{ post.title }}</h2>
+            <p class="article-content">{{ post.content|safe }}</p>
+            <hr>
+            <form method="POST">
+                {% csrf_token %}
+                <fieldset class="form-group">
+                    <legend class="border-bottom mb-4">Add Comment</legend>
+                    {{ form|crispy }}
+                </fieldset>
+                <div class="form-group">
+                    <button class="btn btn-outline-info" type="submit">{{button}}</button>
+                </div>
+            </form>
+        </div>
+    </article>
+{% endblock %}

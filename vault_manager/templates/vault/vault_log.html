@@ -1,0 +1,40 @@
+{% extends "vault/layout.html" %}
+{% load humanize %}
+{% block content %}
+    <h3>Vault Log</h3>
+    <table class="table table-striped table-bordered table-dark">
+    <thead class="thead-dark">
+        <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Action</th>
+        <th scope="col">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+            <tr>
+                <td>{{ log.name.first_name }} {{ log.name.last_name }}</td>
+                <td>{{ log.action }}</td>
+                <td class="table-size">{{ log.date|date:"F d, Y" }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% if logs.has_previous %}
+      <a class="btn btn-outline-info mb-4" href="{% url 'vault_log' %}?page=1">First</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'refunds' %}?page={{ refunds.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% for num in logs.paginator.page_range %}
+      {% if logs.number == num %}
+        <a class="btn btn-info mb-4" href="{% url 'vault_log' %}?page={{ num }}">{{ num }}</a>
+      {% elif num > logs.number|add:'-3' and num < logs.number|add:'3' %}
+        <a class="btn btn-outline-info mb-4" href="{% url 'vault_log' %}?page={{ num }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if logs.has_next %}
+      <a class="btn btn-outline-info mb-4" href="{% url 'vault_log' %}?page={{ logs.next_page_number }}">Next</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'vault_log' %}?page={{ logs.paginator.num_pages }}">Last</a>
+    {% endif %}
+{% endblock content %}

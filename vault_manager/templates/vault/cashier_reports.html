@@ -1,0 +1,86 @@
+{% extends "vault/layout.html" %}
+{% load humanize %}
+{% block content %}
+    <h1>Daily Cashier Reports</h1>
+    <table class="table table-striped table-bordered">
+    <thead class="thead-dark">
+        <tr>
+            <th scope="col">Zone</th>
+            <th scope="col">Branch</th>
+            <th scope="col">Teller</th>
+            <th scope="col">Opening Cash</th>
+            <th scope="col">Additional Cash</th>
+            <th scope="col">Closing Balance</th>
+            <th scope="col">Euro</th>
+            <th scope="col">USD</th>
+            <th scope="col">GBP</th>
+            <th scope="col">CFA</th>
+            <th scope="col">Swiss Krona</th>
+            <th scope="col">Nor Krona</th>
+            <th scope="col">Swiss Franck</th>
+            <th scope="col">Desnish Krona</th>
+            <th scope="col">Cad Dollar</th>
+            <th scope="col">Date</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report in reports %}
+            <tr>
+                <td>{{ report.reporter.profile.zone }}</td>
+                {% if report.status %}
+                    <td>{{ report.reporter.profile.branch }}</td>
+                {% else %}
+                    <td><a href="{% url 'update_cashier_reporting' report.id %}">{{ report.reporter.profile.branch }}</a></td>
+                {% endif %}
+                <td>{{ report.reporter.first_name }} {{ report.reporter.last_name }}</td>
+                <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
+                <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
+                <td>{{report.closing_balance|floatformat:2|intcomma }}</td>
+      
+                <td>{{ report.euro|floatformat:2|intcomma }}</td>
+                <td>{{ report.us_dollar|floatformat:2|intcomma }}</td>
+                <td>{{ report.gbp_pound|floatformat:2|intcomma }}</td>
+                <td>{{ report.cfa|floatformat:2|intcomma }}</td>
+                <td>{{ report.swiss_krona|floatformat:2|intcomma }}</td>
+                <td>{{ report.nor_krona|floatformat:2|intcomma }}</td>
+                <td>{{ report.swiss_franck|floatformat:2|intcomma }}</td>
+                <td>{{ report.denish_krona|floatformat:2|intcomma }}</td>
+                <td>{{ report.cad_dollar|floatformat:2|intcomma }}</td>
+                <td class="table-size">{{ report.date|date:"F d, Y" }}</td>
+                {% if report.status %}
+                <td style="color: green">Approved</td>
+                {% else %}
+                    <td style="color: red">Pending</td>
+                {% endif %}
+                {% if not report.status %}
+                    <td>
+                        <form action="{% url 'approve_cashier_report' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ report.id }}" />
+                            <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
+                        </form>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    {% if reports.has_previous %}
+      <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashier_reports' %}?page=1">First</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashier_reports' %}?page={{ reports.previous_page_number }}">Previous</a>
+    {% endif %}
+
+    {% for num in reports.paginator.page_range %}
+      {% if reports.number == num %}
+        <a class="btn btn-info mb-4" href="{% url 'daily_cashier_reports' %}?page={{ num }}">{{ num }}</a>
+      {% elif num > reports.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashier_reports' %}?page={{ num }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if reports.has_next %}
+      <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashier_reports' %}?page={{ reports.next_page_number }}">Next</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'dailycashierr_reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
+    {% endif %}
+{% endblock content %}

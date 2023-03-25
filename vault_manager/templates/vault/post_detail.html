@@ -1,0 +1,43 @@
+{% extends 'blog/layout.html' %}
+{% block body %}
+    <article class="media content-section">
+        <img class="rounded-circle article-img" src="{{ object.author.account.image.url }}" alt="image">
+        <div class="media-body">
+            <div class="article-metadata">
+            <a class="mr-2" href="{% url 'user_posts' post.author.username %}">{{ object.author }}</a>
+            <small class="text-muted">{{ object.date_posted|date:"F d, Y" }}</small>
+            </div>
+            <h2 class="article-title"> {{ object.title }}</h2>
+            <p class="article-content">{{ object.content|safe }}</p>
+            <hr>
+            <form action="{% url 'like_post' post.pk %}" method="POST">
+                {% csrf_token %}
+                {% if liked %}
+                  <button type="submit", name="post_id", value="{{ post.id }}", class="btn btn-danger btn-sm">Unlike</button> - {{ total_likes }} Likes
+                {% else %}
+                  <button type="submit", name="post_id", value="{{ post.id }}", class="btn btn-primary btn-sm">Like</button> - {{ total_likes }} Likes
+                {% endif %}
+            </form>
+            <hr>
+            <h1>Comments</h1>
+            <p><a class="btn btn-primary" href="{% url 'add_comment' object.id %}">Add a Comment</a></p>
+            {% if comments %}
+                {% for comment in comments %}
+                    <article class="media content-section">
+                        <img class="rounded-circle article-img" src="{{ comment.commenter.account.image.url }}" alt="image">
+                        <div class="media-body">
+                            <div class="article-metadata">
+                            <small class="mr-2">{{ comment.commenter.username }}</small>
+                            <small class="text-muted">{{ comment.date_commented|date:"F d, Y" }}</small>
+                            {% if user == comment.commenter %}
+                                <a href="{% url 'edit_comment' comment.id post.id %}">Edit</a>
+                            {% endif %}
+                            </div>
+                            <p class="article-content">{{ comment.body|safe }}</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </article>
+{% endblock %}

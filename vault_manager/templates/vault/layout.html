@@ -1,0 +1,154 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="{% static 'vault/js/popper.min1.js' %}"></script>
+    <script src="{% static 'vault/js/bootstrap.min1.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'vault/css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
+    <!-- Montserrat Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+
+    <!-- favicon -->
+    <link rel="icon" href="{% static 'vault/images/fevicon.jpg' %}" type="image/gif" />
+
+    {% if title %}
+        <title>Yonna Vault - {{ title }}</title>
+    {% else %}
+        <title>Yonna Vault</title>
+    {% endif %}
+</head>
+<body style="background-color: #b989ad;">
+{% if user.is_authenticated %}
+    <header class="site-header col-md-12">
+        <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
+            <div class="container">
+                <a style="color: white;" class="navbar-brand mr-4">YONNA VAULT</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarToggle"
+                    aria-controls="navbarToggle" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarToggle">
+                    <div class="navbar-nav mr-auto">
+                            {% if user.is_staff %}
+                                <a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a>
+                                <a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a>
+                                <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
+                                <a class="nav-item nav-link" href="{% url 'vault_log' %}">Vault Log</a>
+                                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Agents</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'zones' %}">Zones</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'branches' %}">Branches</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Deposits</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'cashier_deposits' %}">Cashier Deposits</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'supervisor_deposits' %}">Supervisor Deposits</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'refunds' %}">Refunds</a></li>
+                                    </ul>
+                                </li>
+                                <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Reports</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'daily_supervisor_reports' %}">Daily Supervisors Reports</a></li>
+                                        <li><a class="dropdown-item" href="{% url 'daily_cashier_reports' %}">Daily Cashiers Reports</a></li>
+                                    </ul>
+                                </li>
+                            {% endif %}
+                            {% if user.profile.is_supervisor %}
+                                {% if user.is_staff %}
+                                    <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                        aria-expanded="false">Operation</a>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item" href="{% url 'my_branches' %}">Branches</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'reports' %}">Reports</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_withdrawals' %}">Withdrawals</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'credit_cashier' %}">Credit Cashier Account</a></li>
+                                        </ul>
+                                    </li>
+                                {% else %}
+                                    <li><a class="nav-item nav-link" href="{% url 'my_branches' %}">Branches</a></li>
+                                    <li><a class="nav-item nav-link" href="{% url 'reports' %}">Reports</a></li>
+                                    <li><a class="nav-item nav-link" href="{% url 'my_withdrawals' %}">Withdrawals</a></li>
+                                    <li><a class="nav-item nav-link" href="{% url 'credit_cashier' %}">Credit Cashier Account</a></li>
+                                {% endif %}
+                            {% endif %}
+                            {% if user.profile.is_cashier %}
+                                <li><a class="nav-item nav-link" href="{% url 'cashier_reporting' %}">Send Report</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'reports' %}">My Reports</a></li>
+                                {% endif %}
+                            {% if user.profile.is_supervisor or user.profile.is_cashier %}
+                                {% if user.profile.opening_cash|add:user.profile.additional_cash > 50000 %}
+                                    <a style="color: greenyellow;" class="nav-item nav-link" href="{% url 'profile' %}">Balance: {{ user.profile.opening_cash|add:user.profile.additional_cash|floatformat:2|intcomma}}</a>
+                                {% else %}
+                                    <a style="color: red;" class="nav-item nav-link" href="{% url 'profile' %}">Balance: {{ user.profile.opening_cash|add:user.profile.additional_cash|floatformat:2|intcomma}}</a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    <!-- Navbar Right Side -->
+                    {% if user.is_authenticated %}
+                    <div class="navbar-nav ms-auto">
+                      <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                      <a class="nav-item nav-link" href="{% url 'logout' %}"><img src="{% static 'vault/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+{% endif %}
+<div class="flex-wrapper">
+    <div class="container">
+        <main role="main" class="container">
+            <div class="row">
+              <div class="col-md-12">
+                {% if messages %}
+                  {% for message in messages %}
+                    {% if message.tags == "error" %}
+                        <div class="alert alert-danger">
+                        {{ message }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                        </div>
+                    {% endif %}
+                  {% endfor %}
+                {% endif %}
+                {% block content %}{% endblock %}
+              </div>
+            </div>
+        </main>
+    </div>
+    <div class="footer container">
+        {% if user.is_authenticated %}
+            <div class="container">
+                <div class="ticker">
+                <div class="title"><h5>Yonna Foreign Exchange Bureau</h5></div>
+                <div class="news">
+                    <marquee>
+                        <p>Demanding, but definitely doable. Stressful but motivational. A focused company, with broadly applicable business models; Yonna Foreign Exchange Bureau, is the quintessential. - Delivering more than just money.</p>
+                    </marquee>
+                </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+  <script src="{% static 'vault/js/jquery-3.2.1.slim.min.js' %}"></script>
+  <script src="{% static 'vault/js/popper.min.js' %}"></script>
+  <script src="{% static 'vault/js/bootstrap.min.js' %}"></script>
+</body>
+</html>
