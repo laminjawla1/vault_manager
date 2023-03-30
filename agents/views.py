@@ -7,6 +7,7 @@ from vault_manager.models import Deposit
 from .models import Zone, Branch
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
+from django.db.models import Sum
 
 @login_required
 def profile(request):
@@ -37,6 +38,11 @@ def zones(request):
         raise PermissionDenied()
     
     zones = Zone.objects.all().order_by('name')
+
+    total_op = Zone.objects.all().aggregate(Sum('supervisor__profile__cash')).get('supervisor__profile__cash__sum')
+    total_ad = Zone.objects.all().aggregate(Sum('supervisor__profile__add_cash')).get('supervisor__profile__add_cash__sum')
+    total_cs = Zone.objects.all().aggregate(Sum('supervisor__profile__closing_balance')).get('supervisor__profile__closing_balance__sum')
+
     page = request.GET.get('page', 1)
 
     paginator = Paginator(zones, 12)
@@ -47,7 +53,7 @@ def zones(request):
         paginator = paginator.page(1)
 
     return render(request, "agents/zones.html", {
-        'zones': paginator
+        'zones': paginator, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs
     })
 
 
@@ -88,6 +94,24 @@ def my_branches(request):
 
     return render(request, "agents/my_branches.html", {
         'branches': paginator
+    })
+
+@login_required
+def branches_under(request, username):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    
+    total_op = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
+            aggregate(Sum('teller__profile__cash')).get('teller__profile__cash__sum')
+    total_ad = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
+            aggregate(Sum('teller__profile__add_cash')).get('teller__profile__add_cash__sum')
+    total_cs = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
+            aggregate(Sum('teller__profile__closing_balance')).get('teller__profile__closing_balance__sum')
+    
+    branches = Branch.objects.filter(teller__profile__zone__supervisor__username=username).order_by('name')
+    return render(request, "agents/branches_under.html", {
+        'branches': branches, 'caption': f'Branches Under {username}',
+        'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs
     })
 
 @login_required

@@ -14,7 +14,7 @@
   <tbody>
     {% for zone in zones %}
     <tr>
-      <td>{{ zone.name }}</td>
+      <td><a href="{% url 'branches_under' zone.supervisor.username %}">{{ zone.name }}</a></td>
       {% if zone.supervisor %}
         <td>{{ zone.supervisor.first_name}} {{ zone.supervisor.last_name }}</td>
         {% if zone.supervisor.profile.cash %}
@@ -33,12 +33,18 @@
         <td style="color: red">N/A</td>
         {% endif %}
       {% if zone.supervisor %}
-        <td style="color: red">{{ zone.supervisor.profile.closing_balance|floatformat:2|intcomma }}</td>
+        <td style="color: rgb(250, 255, 118)">{{ zone.supervisor.profile.closing_balance|floatformat:2|intcomma }}</td>
       {% else %}
         <td style="color: red">N/A</td>
       {% endif %}
     </tr>
     {% endfor %}
+    <tr>
+      <td scope="col" colspan="2" style="font-weight: bold; color: red;">TOTALS</td>
+      <td scope="col" style="font-weight: bold;">{{ total_op|floatformat:2|intcomma }}</td>
+      <td scope="col" style="font-weight: bold;">{{ total_ad|floatformat:2|intcomma }}</td>
+      <td scope="col" style="font-weight: bold;">{{ total_cs|floatformat:2|intcomma }}</td>
+    </tr>
 </tbody>
 </table>
 {% if zones.has_previous %}
