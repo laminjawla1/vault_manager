@@ -1,19 +1,22 @@
 body {
   padding-top: 63px;
-  background: #fffcfc;
+  background: #b989ad;
   color: #333333;
-  margin-top: 5rem;
   font-family: 'Poppins', sans-sherif;
   align-items: center;
   justify-content: center;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  color: #444444;
+  color: #914790;;
+}
+
+ul {
+  margin: 0;
 }
 
 .bg-steel {
-  background-color:rgb(99, 0, 69)
+  background-color:#490549
 }
 
 .site-header .navbar-nav .nav-link {
@@ -29,11 +32,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .content-section {
-  background: #ffffff;
+  background: #e0bfdb;
   padding: 10px 20px;
   border: 1px solid #dddddd;
-  border-radius: 3px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
 
 
@@ -42,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a.article-title:hover {
-  color: #428bca;
+  color: #ca42af;
   text-decoration: none;
 }
 
