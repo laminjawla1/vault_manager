@@ -23,7 +23,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path("", vault_views.index, name='index'),
-    path("admin/", admin.site.urls, name="admin"),
+    path("admin/", admin.site.urls, name='admin'),
     path("my_branches/", agent_views.my_branches, name="my_branches"),
     path("branches_under/<str:username>/", agent_views.branches_under, name="branches_under"),
     path("my_deposits/", agent_views.my_deposits, name="my_deposits"),
