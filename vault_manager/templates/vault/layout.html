@@ -40,7 +40,9 @@
                 <div class="collapse navbar-collapse" id="navbarToggle">
                     <div class="navbar-nav mr-auto">
                             {% if user.is_staff %}
-                                <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin</a>
+                                {% if user.is_staff and not user.profile.supervisor %}
+                                    <a class="nav-item nav-link" href="{% url 'admin:index' %}">Admin</a>
+                                {% endif %}
                                 <a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                                 <a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a>
                                 <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
