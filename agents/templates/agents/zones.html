@@ -14,7 +14,11 @@
   <tbody>
     {% for zone in zones %}
     <tr>
-      <td><a href="{% url 'branches_under' zone.supervisor.username %}">{{ zone.name }}</a></td>
+      {% if zone.supervisor %}
+        <td><a href="{% url 'branches_under' zone.supervisor.username %}">{{ zone.name }}</a></td>
+      {% else %}
+        <td>{{ zone.name }}</td>
+      {% endif %}
       {% if zone.supervisor %}
         <td>{{ zone.supervisor.first_name}} {{ zone.supervisor.last_name }}</td>
         {% if zone.supervisor.profile.cash %}
