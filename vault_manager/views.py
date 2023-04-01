@@ -17,6 +17,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .utils import gmd
 import csv
+import os
 
 @login_required
 def index(request):
@@ -288,7 +289,7 @@ class CreditSupervisorAccount(LoginRequiredMixin, CreateView):
             'Credit Supervisor Account',
             f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
             'yonnatech.g@gmail.com',
-            ['ljawla@yonnaforexbureau.com'],
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
         movement = Movement(name=self.request.user,
@@ -375,7 +376,7 @@ class CreditCashierAccount(LoginRequiredMixin, CreateView):
             'Credit Cashier Account',
             f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
             'yonnatech.g@gmail.com',
-            ['ljawla@yonnaforexbureau.com'],
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
         self.request.user.profile.save()
@@ -594,7 +595,7 @@ class WithdrawCash(LoginRequiredMixin, CreateView):
             'Cash Withdrawal Request',
             f'{self.request.user.first_name} {self.request.user.last_name} sent a withdrawal request of {gmd(form.instance.amount)}.', 
             'yonnatech.g@gmail.com',
-            ['ljawla@yonnaforexbureau.com'],
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
         messages.success(self.request, "Cash withdrawal request is sent successfully")
@@ -648,7 +649,7 @@ class SupervisorReporting(LoginRequiredMixin, CreateView):
             'Daily Supervisor Report',
             f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
             'yonnatech.g@gmail.com',
-            ['ljawla@yonnaforexbureau.com'],
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
         messages.success(self.request, "Your daily report have been submitted successfully")
@@ -703,7 +704,7 @@ class CashierReporting(LoginRequiredMixin, CreateView):
             'Daily Cashier Report',
             f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
             'yonnatech.g@gmail.com',
-            ['ljawla@yonnaforexbureau.com'],
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
         messages.success(self.request, "Your daily report have been submitted successfully")

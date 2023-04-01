@@ -19,7 +19,7 @@
         {% for deposit in deposits %}
             <tr>
                 <td>{{ deposit.agent.profile.branch}}</td>
-                {% if deposit.status %}
+                {% if deposit.status or user.profile.is_supervisor %}
                   <td>{{ deposit.agent.profile.zone}}</td>
                 {% else %}
                   <td><a href="{% url 'update_cashier_deposit' deposit.id %}">{{ deposit.agent.profile.zone}}</a></td>
@@ -33,14 +33,16 @@
                     <td style="color: red">Pending</td>
                 {% endif %}
                 <td class="table-size">{{ deposit.date|date:"F d, Y" }}</td>
-                {% if not deposit.status %}
-                    <td>
-                        <form action="{% url 'approve_cashier_deposit' %}" method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="hidden" name="id" value="{{ deposit.id }}" />
-                            <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                        </form>
-                    </td>
+                {% if not user.profile.is_supervisor %}
+                  {% if not deposit.status %}
+                      <td>
+                          <form action="{% url 'approve_cashier_deposit' %}" method="post" enctype="multipart/form-data">
+                              {% csrf_token %}
+                              <input type="hidden" name="id" value="{{ deposit.id }}" />
+                              <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
+                          </form>
+                      </td>
+                  {% endif %}
                 {% endif %}
             </tr>
         {% endfor %}

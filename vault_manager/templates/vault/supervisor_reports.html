@@ -26,7 +26,7 @@
     <tbody>
         {% for report in reports %}
             <tr>
-                {% if report.status %}
+                {% if report.status or user.profile.is_supervisor%}
                     <td>{{ report.reporter.profile.zone }}</td>
                 {% else %}
                     <td><a href="{% url 'update_supervisor_reporting' report.id %}">{{ report.reporter.profile.zone }}</a></td>
@@ -51,14 +51,16 @@
                 {% else %}
                     <td style="color: red">Pending</td>
                 {% endif %}
-                {% if not report.status %}
-                    <td>
-                        <form action="{% url 'approve_supervisor_report' %}" method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="hidden" name="id" value="{{ report.id }}" />
-                            <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                        </form>
-                    </td>
+                {% if not user.profile.is_supervisor %}
+                    {% if not report.status %}
+                        <td>
+                            <form action="{% url 'approve_supervisor_report' %}" method="post" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <input type="hidden" name="id" value="{{ report.id }}" />
+                                <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
+                            </form>
+                        </td>
+                    {% endif %}
                 {% endif %}
             </tr>
         {% endfor %}
