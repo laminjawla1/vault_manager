@@ -7,6 +7,7 @@
             <tr>
                 <th scope="col">Zone</th>
                 <th scope="col">Branch</th>
+                <th scope="col">Location</th>
                 <th scope="col">Teller</th>
                 <th scope="col">Opening Cash</th>
                 <th scope="col">Additional Cash</th>
@@ -29,10 +30,11 @@
             <tr>
                 <td>{{ report.reporter.profile.zone }}</td>
                 {% if report.status or user.profile.is_supervisor %}
-                    <td>{{ report.reporter.profile.branch }}</td>
+                <td>{{ report.reporter.profile.branch }}</td>
                 {% else %}
-                    <td><a href="{% url 'update_cashier_reporting' report.id %}">{{ report.reporter.profile.branch }}</a></td>
+                <td>{{ report.reporter.profile.branch }}</td>
                 {% endif %}
+                <td>{{ report.location }}</td>
                 <td>{{ report.reporter.first_name }} {{ report.reporter.last_name }}</td>
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>

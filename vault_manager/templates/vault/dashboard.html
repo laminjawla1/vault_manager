@@ -70,29 +70,26 @@
       <div class="main-cards2">
         <div class="card">
           <div class="card-inner">
-            <h3>Withdrawals</h3>
+            <h3>Withdrawals: {{t_withdrawals}}</h3>
             <span class="material-icons-outlined">attach_money</span>
           </div>
-          <h1>Total: {{t_withdrawals}}</h1>
           <h1>Amount: {{withdrawals_amount|floatformat:2|intcomma}}</h1>
       </div>
 
       <div class="card">
         <div class="card-inner">
-          <h3>Deposits</h3>
+          <h3>Deposits: {{deposits}}</h3>
           <span class="material-icons-outlined">attach_money</span>
         </div>
-        <h1>Total: {{deposits}}</h1>
         <h1>Amount: {{deposit_amount|floatformat:2|intcomma}}</h1>
     </div>
 
       <div class="card">
         <div class="card-inner">
-          <h3>Reports</h3>
+          <h3>Borrows: {{t_borrows}}</h3>
           <span class="material-icons-outlined">attach_money</span>
         </div>
-        <h1>Cahsiers: {{c_reports}}</h1>
-        <h1>Supervisors: {{s_reports}}</h1>
+        <h1>Amount: {{borrow_amount|floatformat:2|intcomma}}</h1>
     </div>
     <div>
     </main>

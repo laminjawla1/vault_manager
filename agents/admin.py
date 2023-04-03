@@ -20,7 +20,7 @@ class AccountsUserAdmin(AuthUserAdmin):
 class BranchAdmin(admin.ModelAdmin):
     list_display = ('name', 'teller')
     search_fields = ('name', 'teller__username')
-    sortable_by = ['name']
+    sortable_by = ['name', 'teller__username']
 
 class ZoneAdmin(admin.ModelAdmin):
     list_display = ('name', 'supervisor')

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MainVault, ZoneVault, Withdraw, Deposit, Account
+from .models import MainVault, ZoneVault, Withdraw, Deposit, Account, Bank
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 import csv
@@ -131,17 +131,19 @@ class MainVaultAdmin(admin.ModelAdmin):
     actions = [generate_supervisor_report]
 
 class ZoneVaultAdmin(admin.ModelAdmin):
-    list_display = ['reporter','zone', 'branch', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    search_fields = ['reporter__username','zone__name', 'branch__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    sortable_by = ['reporter__username','zone__name', 'branch__name','opening_cash', 'additional_cash', 'closing_balance', 'date']
-    filter_by = ['reporter__username','zone__name', 'branch__name', 'date']
-    list_filter = ['reporter__username','zone__name', 'branch__name', 'date']
+    list_display = ['reporter','zone', 'branch', 'location', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
+    search_fields = ['reporter__username','zone__name', 'location__name', 'branch__name', 'opening_cash',
+                      'additional_cash', 'closing_balance', 'date']
+    sortable_by = ['reporter__username','zone__name', 'branch__name', 'location__name','opening_cash', 'additional_cash',
+                    'closing_balance', 'date']
+    filter_by = ['reporter__username','zone__name', 'branch__name', 'location__name', 'date']
+    list_filter = ['reporter__username','zone__name', 'branch__name', 'location__name', 'date']
     readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date', 'euro', 'us_dollar', 
                        'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
     fieldsets = (
         ('Meta Information', {
             'classes': ('collapse',),
-            'fields': ('reporter', 'zone', 'branch', 'date')
+            'fields': ('reporter', 'zone', 'branch', 'location', 'date')
         }),
         ('Currencies', {
             'classes': ('collapse',),
@@ -179,8 +181,17 @@ class WithdrawAdmin(admin.ModelAdmin):
     readonly_fields = ['withdrawer', 'amount', 'account', 'status', 'date']
     actions = [generate_withdrawal_report]
 
+class BankAdmin(admin.ModelAdmin):
+    list_display = ['name', 'date']
+    sortable_by = ['name', 'date']
+    filter_by = ['name', 'date']
+    list_filter = ['name', 'date']
+    search_fields = ['name', 'date']
+    readonly_fields = ['date']
+
 admin.site.register(MainVault, MainVaultAdmin)
 admin.site.register(ZoneVault, ZoneVaultAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(Deposit, DepositAdmin)
 admin.site.register(Withdraw, WithdrawAdmin)
+admin.site.register(Bank, BankAdmin)

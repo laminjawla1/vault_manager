@@ -82,9 +82,15 @@ def my_branches(request):
     if not request.user.profile.is_supervisor:
         raise PermissionDenied()
     
+    total_op = Branch.objects.filter(teller__profile__zone__supervisor__username=request.user.username).\
+            aggregate(Sum('teller__profile__opening_cash')).get('teller__profile__opening_cash__sum')
+    total_ad = Branch.objects.filter(teller__profile__zone__supervisor__username=request.user.username).\
+            aggregate(Sum('teller__profile__additional_cash')).get('teller__profile__additional_cash__sum')
+    total_cs = Branch.objects.filter(teller__profile__zone__supervisor__username=request.user.username).\
+            aggregate(Sum('teller__profile__closing_balance')).get('teller__profile__closing_balance__sum')
+    
     branches = Branch.objects.filter(teller__profile__zone=request.user.profile.zone).order_by('name')
     page = request.GET.get('page', 1)
-
     paginator = Paginator(branches, 8)
 
     try:
@@ -93,7 +99,7 @@ def my_branches(request):
         paginator = paginator.page(1)
 
     return render(request, "agents/my_branches.html", {
-        'branches': paginator
+        'branches': paginator, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs
     })
 
 @login_required
@@ -102,9 +108,9 @@ def branches_under(request, username):
         raise PermissionDenied()
     
     total_op = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
-            aggregate(Sum('teller__profile__cash')).get('teller__profile__cash__sum')
+            aggregate(Sum('teller__profile__opening_cash')).get('teller__profile__opening_cash__sum')
     total_ad = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
-            aggregate(Sum('teller__profile__add_cash')).get('teller__profile__add_cash__sum')
+            aggregate(Sum('teller__profile__additional_cash')).get('teller__profile__additional_cash__sum')
     total_cs = Branch.objects.filter(teller__profile__zone__supervisor__username=username).\
             aggregate(Sum('teller__profile__closing_balance')).get('teller__profile__closing_balance__sum')
     

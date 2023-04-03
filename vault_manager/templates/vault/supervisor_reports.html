@@ -26,11 +26,7 @@
     <tbody>
         {% for report in reports %}
             <tr>
-                {% if report.status or user.profile.is_supervisor%}
-                    <td>{{ report.reporter.profile.zone }}</td>
-                {% else %}
-                    <td><a href="{% url 'update_supervisor_reporting' report.id %}">{{ report.reporter.profile.zone }}</a></td>
-                {% endif %}
+                <td>{{ report.reporter.profile.zone }}</td>
                 <td>{{ report.reporter.first_name }} {{ report.reporter.last_name }}</td>
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>

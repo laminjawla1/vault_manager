@@ -1,4 +1,4 @@
-from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund)
+from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow)
 from agents.models import Movement
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -64,6 +64,13 @@ def dashboard(request):
     if not withdrawals_amount:
         withdrawals_amount = 0
 
+    t_borrows = len(
+        Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
+    borrow_amount = Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
+                                                 date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum')
+    if not borrow_amount:
+        borrow_amount = 0
+
     deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
                                                  date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum')
     if not deposit_amount:
@@ -75,7 +82,8 @@ def dashboard(request):
     return render(request, "vault/dashboard.html", {
         'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
         'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
-        'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports
+        'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports, 'borrow_amount': borrow_amount,
+        't_borrows': t_borrows
     })
     
 @login_required
@@ -193,6 +201,25 @@ def withdrawals(request):
     })
 
 @login_required
+def borrows(request):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    
+    borrows = Borrow.objects.all().order_by('-date')
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(borrows, 10)
+
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+
+    return render(request, "vault/borrows.html", {
+        'borrows': paginator
+    })
+
+@login_required
 def my_withdrawals(request):
     if request.user.is_staff or request.user.profile.is_supervisor:
         withdrawals = Withdraw.objects.filter(withdrawer=request.user).all().order_by('-date')
@@ -207,6 +234,24 @@ def my_withdrawals(request):
 
         return render(request, "vault/my_withdrawals.html", {
             'withdrawals': paginator
+        })
+    raise PermissionDenied()
+
+@login_required
+def my_borrows(request):
+    if request.user.is_staff or request.user.profile.is_supervisor:
+        borrows = Borrow.objects.filter(borrower=request.user).all().order_by('-date')
+        page = request.GET.get('page', 1)
+
+        paginator = Paginator(borrows, 10)
+
+        try:
+            paginator = paginator.page(page)
+        except:
+            paginator = paginator.page(1)
+
+        return render(request, "vault/my_borrows.html", {
+            'borrows': paginator
         })
     raise PermissionDenied()
 
@@ -524,6 +569,20 @@ def approve_withdrawal_request(request):
         return HttpResponseRedirect(reverse('withdrawals'))
 
 @login_required
+def approve_borrow_request(request):
+    if request.method == "POST":
+        borrow = get_object_or_404(Borrow, id=request.POST["id"])
+        borrow.status = True
+        borrow.account.balance += borrow.amount
+        borrow.save()
+        borrow.account.save()
+        movement = Movement(name=request.user, action=f"Approved {borrow.borrower.username}'s \
+                             borrow request of {gmd(borrow.amount)}")
+        movement.save()
+        messages.success(request, "Borrow Accepted")
+        return HttpResponseRedirect(reverse('borrows'))
+
+@login_required
 def disapprove_withdrawal_request(request):
     if request.method == "POST":
         withdrawal = get_object_or_404(Withdraw, id=request.POST["id"])
@@ -533,6 +592,17 @@ def disapprove_withdrawal_request(request):
         movement.save()
         messages.success(request, "Withdrawal Rejected 😔")
         return HttpResponseRedirect(reverse('withdrawals'))
+
+@login_required
+def disapprove_borrow_request(request):
+    if request.method == "POST":
+        borrow = get_object_or_404(Borrow, id=request.POST["id"])
+        borrow.delete()
+        movement = Movement(name=request.user, action=f"Disapproved {borrow.borrower.username}'s \
+                             borrow request of {gmd(borrow.amount)}")
+        movement.save()
+        messages.success(request, "Borrow Rejected 😔")
+        return HttpResponseRedirect(reverse('borrows'))
 
 
 class RefundAgent(LoginRequiredMixin, CreateView):
@@ -584,7 +654,7 @@ class RefundAgent(LoginRequiredMixin, CreateView):
 class WithdrawCash(LoginRequiredMixin, CreateView):
     model = Withdraw
     template_name = "vault/withdraw_form.html"
-    fields = ['account', 'amount']
+    fields = ['bank', 'cheque_number', 'amount', 'account']
 
     def form_valid(self, form):
         form.instance.withdrawer = self.request.user
@@ -605,6 +675,36 @@ class WithdrawCash(LoginRequiredMixin, CreateView):
         if self.request.user.is_staff or self.request.user.profile.is_supervisor:
             context = super(WithdrawCash, self).get_context_data(*args, **kwargs)
             context['button'] = 'Withdraw'
+            context['legend'] = 'Withdraw Cash'
+            return context
+        raise PermissionDenied()
+
+
+class BorrowCash(LoginRequiredMixin, CreateView):
+    model = Borrow
+    template_name = "vault/withdraw_form.html"
+    fields = ['customer_name', 'address', 'phone', 'amount', 'account']
+
+    def form_valid(self, form):
+        form.instance.borrower = self.request.user
+        movement = Movement(name=self.request.user, action=f"Sent a borrow request of amount {gmd(form.instance.amount)}.")
+        movement.save()
+
+        send_mail(
+            'Cash Borrow Request',
+            f'{self.request.user.first_name} {self.request.user.last_name} sent a borrow request of {gmd(form.instance.amount)}.', 
+            'yonnatech.g@gmail.com',
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+            fail_silently=False,
+        )
+        messages.success(self.request, "Cash borrow request is sent successfully")
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        if self.request.user.is_staff or self.request.user.profile.is_supervisor:
+            context = super(BorrowCash, self).get_context_data(*args, **kwargs)
+            context['button'] = 'Borrow'
+            context['legend'] = 'Borrow Cash'
             return context
         raise PermissionDenied()
 
@@ -612,7 +712,7 @@ class WithdrawCash(LoginRequiredMixin, CreateView):
 class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):
     model = Withdraw
     template_name = "vault/withdraw_form.html"
-    fields = ['account', 'amount']
+    fields = ['bank', 'cheque_number', 'amount', 'account']
 
     def form_valid(self, form):
         movement = Movement(name=self.request.user, action=f"Updated the withdrawal request of \
@@ -627,12 +727,38 @@ class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):
         return not withdrawal.status
     
     def get_context_data(self, *args, **kwargs):
+        if not self.request.user.is_staff:
+            raise PermissionDenied()
+        context = super(UpdateWithdrawCash, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Update'
+        context['legend'] = 'Update Withdraw Cash'
+        return context
+
+
+class UpdateBorrowCash(LoginRequiredMixin, UpdateView):
+    model = Borrow
+    template_name = "vault/withdraw_form.html"
+    fields = ['customer_name', 'address', 'phone', 'amount', 'account']
+
+    def form_valid(self, form):
+        movement = Movement(name=self.request.user, action=f"Updated the borrow request of \
+                            {form.instance.borrower.username}. Amount: {gmd(form.instance.amount)}.")
+        movement.save()
+        messages.success(self.request, "Borrow request updated successfully.")
+        return super().form_valid(form)
+    
+    
+    def test_func(self):
+        borrow = self.get_object()
+        return not borrow.status
+    
+    def get_context_data(self, *args, **kwargs):
         if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(UpdateWithdrawCash, self).get_context_data(*args, **kwargs)
+            context = super(UpdateBorrowCash, self).get_context_data(*args, **kwargs)
             context['button'] = 'Update'
+            context['legend'] = 'Update Cash Borrowed'
             return context
         raise PermissionDenied()
-    
 
 
 class SupervisorReporting(LoginRequiredMixin, CreateView):
@@ -664,7 +790,7 @@ class SupervisorReporting(LoginRequiredMixin, CreateView):
     
 
 
-class UpdateSupervisorReporting(LoginRequiredMixin, UpdateView):
+class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = MainVault
     template_name = "vault/daily_report_form.html"
     fields = ['opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
@@ -692,7 +818,7 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UpdateView):
 class CashierReporting(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
               'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
@@ -719,15 +845,13 @@ class CashierReporting(LoginRequiredMixin, CreateView):
     
 
 
-class UpdateCashierReporting(LoginRequiredMixin, UpdateView):
-    model = MainVault
+class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
               'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
-        form.instance.reporter = self.request.user
-        form.instance.zone = self.request.user.profile.zone
         messages.success(self.request, "Daily Report Updated Successfully")
         return super().form_valid(form)
     
@@ -736,8 +860,6 @@ class UpdateCashierReporting(LoginRequiredMixin, UpdateView):
         return not report.status
 
     def get_context_data(self, *args, **kwargs):
-        if not self.request.user.profile.is_cashier:
-            raise PermissionDenied()
         context = super(UpdateCashierReporting, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context

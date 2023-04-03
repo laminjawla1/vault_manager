@@ -45,8 +45,11 @@
                                 {% endif %}
                                 <a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                                 <a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a>
-                                <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
-                                <a class="nav-item nav-link" href="{% url 'vault_log' %}">Vault Log</a>
+                                {% if user.is_staff and not user.profile.is_supervisor %}
+                                    <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
+                                    <a class="nav-item nav-link" href="{% url 'borrows' %}">Borrows</a>
+                                    <a class="nav-item nav-link" href="{% url 'vault_log' %}">Vault Log</a>
+                                {% endif %}
                                 <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                         aria-expanded="false">Agents</a>
                                     <ul class="dropdown-menu">
@@ -78,6 +81,7 @@
                                             <li><a class="dropdown-item" href="{% url 'my_branches' %}">Branches</a></li>
                                             <li><a class="dropdown-item" href="{% url 'reports' %}">Reports</a></li>
                                             <li><a class="dropdown-item" href="{% url 'my_withdrawals' %}">Withdrawals</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_borrows' %}">Borrows</a></li>
                                             <li><a class="dropdown-item" href="{% url 'credit_cashier' %}">Credit Cashier Account</a></li>
                                         </ul>
                                     </li>
@@ -85,6 +89,7 @@
                                     <li><a class="nav-item nav-link" href="{% url 'my_branches' %}">Branches</a></li>
                                     <li><a class="nav-item nav-link" href="{% url 'reports' %}">Reports</a></li>
                                     <li><a class="nav-item nav-link" href="{% url 'my_withdrawals' %}">Withdrawals</a></li>
+                                    <li><a class="nav-item nav-link" href="{% url 'my_borrows' %}">Borrows</a></li>
                                     <li><a class="nav-item nav-link" href="{% url 'credit_cashier' %}">Credit Cashier Account</a></li>
                                 {% endif %}
                             {% endif %}
