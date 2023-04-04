@@ -496,9 +496,6 @@ def approve_cashier_report(request):
         report.reporter.profile.additional_cash = 0
         report.reporter.profile.closing_balance = report.closing_balance
 
-        report.reporter.profile.zone.supervisor.profile.closing_balance += report.closing_balance
-        report.reporter.profile.zone.supervisor.profile.save()
-
         movement = Movement(name=request.user,
                             action=f"Approved {report.reporter.username}'s report")
         movement.save()
@@ -525,7 +522,7 @@ def approve_supervisor_report(request):
             messages.error(request, "Couldn't find the Main Vault Account")
             return HttpResponseRedirect("accounts")
         
-        # report.reporter.profile.closing_balance = report.closing_balance
+        report.reporter.profile.closing_balance = report.closing_balance
         
         movement = Movement(name=request.user,
                             action=f"Approved {report.reporter.username}'s report")
