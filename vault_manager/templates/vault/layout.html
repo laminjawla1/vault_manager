@@ -45,6 +45,7 @@
                                 {% endif %}
                                 <a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a>
                                 <a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a>
+                                <a class="nav-item nav-link" href="{% url 'currency_transactions' %}">Currencies</a>
                                 {% if user.is_staff and not user.profile.is_supervisor %}
                                     <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
                                     <a class="nav-item nav-link" href="{% url 'borrows' %}">Borrows</a>

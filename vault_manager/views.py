@@ -1,4 +1,4 @@
-from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow)
+from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow, CurrencyTransaction)
 from agents.models import Movement
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -217,6 +217,25 @@ def borrows(request):
 
     return render(request, "vault/borrows.html", {
         'borrows': paginator
+    })
+
+@login_required
+def currency_transactions(request):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    
+    transactions = CurrencyTransaction.objects.all().order_by('-date')
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(transactions, 10)
+
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+
+    return render(request, "vault/currency_transactions.html", {
+        'transactions': transactions
     })
 
 @login_required
@@ -989,3 +1008,65 @@ def generate_supervisor_deposit_report(request):
         writer.writerow((d.agent.profile.zone.name, f'{d.agent.first_name} {d.agent.last_name}',
                         d.amount, d.deposit_type, d.status, d.date.strftime("%Y-%m-%d")))
     return response
+
+
+class CurrencyTransact(LoginRequiredMixin, CreateView):
+    model = CurrencyTransaction
+    template_name = "vault/currency_transact_form.html"
+    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate']
+
+    def form_valid(self, form):
+        if form.instance.account.balance - form.instance.amount < 0:
+            messages.error(self.request, "Insufficient Fund 😥")
+            return HttpResponseRedirect('credit_supervisor')
+        form.instance.supervisor = True
+
+        send_mail(
+            'Credit Supervisor Account',
+            f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
+            'yonnatech.g@gmail.com',
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+            fail_silently=False,
+        )
+        movement = Movement(name=self.request.user,
+                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
+        movement.save()
+        account = get_object_or_404(Account, id=form.instance.account.id)
+        account.balance -= form.instance.amount
+        account.save()
+        if form.instance.buy:
+            messages.success(self.request, "Currency bought successfully 😊")
+        else:
+            messages.success(self.request, "Currency sold successfully 😊")
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        if not self.request.user.is_staff:
+            raise PermissionDenied()
+        context = super(CurrencyTransact, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Process'
+        return context
+
+class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Deposit
+    template_name = "vault/deposit_form.html"
+    fields = ['agent', 'deposit_type', 'amount', 'account']
+
+    def form_valid(self, form):
+        movement = Movement(name=self.request.user,
+                            action=f"Updated the deposit of {form.instance.agent.username}. Amount: {gmd(form.instance.amount)}.")
+        movement.save()
+        messages.success(self.request, "Deposit updated successfully.")
+        return super().form_valid(form)
+    
+    
+    def test_func(self):
+        deposit = self.get_object()
+        return not deposit.status
+    
+    def get_context_data(self, *args, **kwargs):
+        if not self.request.user.is_staff:
+            raise PermissionDenied()
+        context = super(UpdateSupervisorAccount, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Update'
+        return context

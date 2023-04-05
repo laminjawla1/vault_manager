@@ -163,3 +163,34 @@ class Borrow(models.Model):
         if self.borrower.profile.is_supervisor:
             return reverse('my_borrows')
         return reverse('borrows')
+
+class Currency(models.Model):
+    class Meta:
+        verbose_name_plural = "Currencies"
+    name = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
+
+class CurrencyTransaction(models.Model):
+    customer_name = models.CharField(max_length=50)
+    phone_number = models.CharField(max_length=50)
+    id_number = models.CharField(max_length=50)
+    sell = models.BooleanField(default=False)
+    buy = models.BooleanField(default=False)
+    type = models.CharField(max_length=20, choices=(('buy', 'buy'), ('sell', 'sell')))
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
+    currency_amount = models.FloatField()
+    rate = models.FloatField()
+    total_amount = models.FloatField()
+    agent = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(null=False, default=timezone.now)
+    status = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.customer_name
+    
+    def get_absolute_url(self):
+        if self.buy:
+            return reverse("currencies_bought")
+        return reverse("currencies_sold")
