@@ -235,7 +235,7 @@ def currency_transactions(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/currency_transactions.html", {
-        'transactions': transactions
+        'transactions': paginator
     })
 
 @login_required
@@ -498,6 +498,7 @@ def approve_cashier_deposit(request):
         movement = Movement(name=request.user,
                             action=f"Approved {deposit.agent.username}'s deposit of {gmd(deposit.amount)}")
         deposit.agent.profile.closing_balance = 0
+        deposit.agent.profile.has_return = False
         movement.save()
         deposit.agent.profile.save()
         deposit.save()
@@ -513,6 +514,7 @@ def approve_cashier_report(request):
         report.reporter.profile.add_cash = 0
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
+        report.reporter.profile.has_return = True
         report.reporter.profile.closing_balance = report.closing_balance
 
         movement = Movement(name=request.user,
@@ -532,6 +534,7 @@ def approve_supervisor_report(request):
         report.reporter.profile.add_cash = 0
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
+        report.reporter.profile.has_return = True
 
         account = Account.objects.filter(name="Main Vault").first()
         if account:
@@ -567,6 +570,8 @@ def approve_supervisor_deposit(request):
         movement.save()
         deposit.agent.profile.save()
         deposit.save()
+        deposit.agent.profile.closing_balance = 0
+        deposit.agent.profile.has_return = False
         messages.success(request, "Deposit Approved")
         return HttpResponseRedirect(reverse('supervisor_deposits'))
 
@@ -784,6 +789,9 @@ class SupervisorReporting(LoginRequiredMixin, CreateView):
               'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
+        if self.request.user.profile.has_return:
+            messages.error(self.request, "You have already submitted your report")
+            return HttpResponseRedirect(reverse("reports"))
         form.instance.reporter = self.request.user
         form.instance.zone = self.request.user.profile.zone
 
@@ -838,6 +846,9 @@ class CashierReporting(LoginRequiredMixin, CreateView):
               'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
+        if self.request.user.profile.has_return:
+            messages.error(self.request, "You have already submitted your report")
+            return HttpResponseRedirect(reverse("reports"))
         form.instance.reporter = self.request.user
         form.instance.branch = self.request.user.profile.branch
         form.instance.zone = self.request.user.profile.zone
@@ -859,8 +870,42 @@ class CashierReporting(LoginRequiredMixin, CreateView):
         context['button'] = 'Send'
         return context
     
+class ReturnCashierAccount(LoginRequiredMixin, CreateView):
+    model = ZoneVault
+    template_name = "vault/daily_report_form.html"
+    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
+    def form_valid(self, form):
+        if form.instance.reporter.profile.has_return:
+            messages.error(self.request, f"You have already submitted {form.instance.reporter.username}'s report")
+            return HttpResponseRedirect(reverse("reports"))
+        form.instance.branch = form.instance.reporter.profile.branch
+        form.instance.zone = form.instance.reporter.profile.zone
 
+        send_mail(
+            'Daily Cashier Report',
+            f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
+            'yonnatech.g@gmail.com',
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+            fail_silently=False,
+        )
+        messages.success(self.request, "Your daily report have been submitted successfully")
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        if (not self.request.user.profile.is_supervisor) and (not self.request.user.is_staff):
+            raise PermissionDenied()
+        context = super(ReturnCashierAccount, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Send'
+        return context
+    
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True, 
+                                                            profile__zone=self.request.user.profile.zone).exclude(id=self.request.user.id)
+        return form
+    
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
@@ -877,6 +922,25 @@ class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView
 
     def get_context_data(self, *args, **kwargs):
         context = super(UpdateCashierReporting, self).get_context_data(*args, **kwargs)
+        context['button'] = 'Update'
+        return context
+
+class UpdateReturnCashierAccount(LoginRequiredMixin, UpdateView):
+    model = ZoneVault
+    template_name = "vault/daily_report_form.html"
+    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+
+    def form_valid(self, form):
+        messages.success(self.request, "Daily Report Updated Successfully")
+        return super().form_valid(form)
+    
+    def test_func(self):
+        report = self.get_object()
+        return not report.status
+
+    def get_context_data(self, *args, **kwargs):
+        context = super(UpdateReturnCashierAccount, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
 
@@ -1013,28 +1077,45 @@ def generate_supervisor_deposit_report(request):
 class CurrencyTransact(LoginRequiredMixin, CreateView):
     model = CurrencyTransaction
     template_name = "vault/currency_transact_form.html"
-    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate']
+    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
 
     def form_valid(self, form):
-        if form.instance.account.balance - form.instance.amount < 0:
-            messages.error(self.request, "Insufficient Fund 😥")
-            return HttpResponseRedirect('credit_supervisor')
-        form.instance.supervisor = True
+        form.instance.agent = self.request.user
+        form.instance.total_amount = form.instance.rate * form.instance.currency_amount
+        if form.instance.type == "buy":
+            if form.instance.account.balance - (form.instance.currency_amount * form.instance.rate) < 0:
+                messages.error(self.request, "Insufficient Fund 😥")
+                return HttpResponseRedirect(reverse('currency_transactions'))
 
-        send_mail(
-            'Credit Supervisor Account',
-            f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        movement = Movement(name=self.request.user,
-                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
+        if form.instance.type == "buy":
+            send_mail(
+                'Currency Purchase',
+                f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.', 
+                'yonnatech.g@gmail.com',
+                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+                fail_silently=False,
+            )
+        elif form.instance.type == "sell":
+            send_mail(
+                'Currency Sell',
+                f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {gmd(form.instance.total_amount)}.', 
+                'yonnatech.g@gmail.com',
+                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+                fail_silently=False,
+            )
+        else:
+            messages.error(self.request, "Invalid transaction type")
+            return HttpResponseRedirect('currency_transact')
+            
+        if form.instance.type == "buy":
+            movement = Movement(name=self.request.user,
+                            action=f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
+        else:
+            movement = Movement(name=self.request.user,
+                            action=f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
         movement.save()
-        account = get_object_or_404(Account, id=form.instance.account.id)
-        account.balance -= form.instance.amount
-        account.save()
-        if form.instance.buy:
+
+        if form.instance.type == "buy":
             messages.success(self.request, "Currency bought successfully 😊")
         else:
             messages.success(self.request, "Currency sold successfully 😊")
@@ -1047,14 +1128,14 @@ class CurrencyTransact(LoginRequiredMixin, CreateView):
         context['button'] = 'Process'
         return context
 
-class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    model = Deposit
-    template_name = "vault/deposit_form.html"
-    fields = ['agent', 'deposit_type', 'amount', 'account']
+class UpdateCurrencyTransact(LoginRequiredMixin, UpdateView):
+    model = CurrencyTransaction
+    template_name = "vault/currency_transact_form.html"
+    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
 
     def form_valid(self, form):
         movement = Movement(name=self.request.user,
-                            action=f"Updated the deposit of {form.instance.agent.username}. Amount: {gmd(form.instance.amount)}.")
+                            action=f'Updated a currency transaction of {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
         movement.save()
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
@@ -1067,6 +1148,35 @@ class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.is_staff:
             raise PermissionDenied()
-        context = super(UpdateSupervisorAccount, self).get_context_data(*args, **kwargs)
+        context = super(UpdateCurrencyTransact, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
+
+@login_required
+def disapprove_currency_transaction(request):
+    if request.method == "POST":
+        transaction = get_object_or_404(CurrencyTransaction, id=request.POST["id"])
+        transaction.delete()
+        movement = Movement(name=request.user, action=f"Disapproved {transaction.agent.username}'s \
+                             currency transaction of {gmd(transaction.total_amount)}")
+        movement.save()
+        messages.success(request, "Transaction Disapproved 😔")
+        return HttpResponseRedirect(reverse('currency_transactions'))
+
+@login_required
+def approve_currency_transaction(request):
+    if request.method == "POST":
+        transaction = get_object_or_404(CurrencyTransaction, id=request.POST["id"])
+        transaction.status = True
+        account = get_object_or_404(Account, id=transaction.account.id)
+        if transaction.type == "buy":
+            account.balance -= transaction.total_amount
+        else:
+            account.balance += transaction.total_amount
+        transaction.save()
+        account.save()
+        movement = Movement(name=request.user, action=f"Approved {transaction.agent.username}'s \
+                             currency transaction of {gmd(transaction.total_amount)}")
+        movement.save()
+        messages.success(request, "Transaction Approved")
+        return HttpResponseRedirect(reverse('currency_transactions'))

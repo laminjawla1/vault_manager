@@ -8,10 +8,15 @@ from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, C
                     SupervisorReporting, daily_supervisor_reports, UpdateSupervisorReporting, CashierReporting, UpdateCashierReporting,
                     daily_cashier_reports, approve_cashier_report, approve_supervisor_report, generate_cashier_deposit_report, 
                     generate_cashier_report, generate_supervisor_report, generate_withdrawal_report, generate_supervisor_deposit_report,
-                    UpdateBorrowCash, borrows, approve_borrow_request, disapprove_borrow_request, CurrencyTransact, currency_transactions)
+                    UpdateBorrowCash, borrows, approve_borrow_request, disapprove_borrow_request, CurrencyTransact, currency_transactions,
+                    UpdateCurrencyTransact, approve_currency_transaction, disapprove_currency_transaction, ReturnCashierAccount,
+                    UpdateReturnCashierAccount)
 
 urlpatterns = [
+    path("disapprove_currency_transaction", disapprove_currency_transaction, name="disapprove_currency_transaction"),
+    path("approve_currency_transaction", approve_currency_transaction, name="approve_currency_transaction"),
     path("currency_transactions", currency_transactions, name="currency_transactions"),
+    path("currency_transactions/<int:pk>/update/", UpdateCurrencyTransact.as_view(), name="update_currency_transaction"),
     path("transaction/new/", CurrencyTransact.as_view(), name="currency_transact"),
     path("generate_supervisor_deposit_report/", generate_supervisor_deposit_report, name="generate_supervisor_deposit_report"),
     path("generate_cashier_deposit_report/", generate_cashier_deposit_report, name="generate_cashier_deposit_report"),
@@ -21,8 +26,10 @@ urlpatterns = [
     path("agents/refunds/", refunds, name='refunds'),
     path("supervisors/reports/new", SupervisorReporting.as_view(), name='supervisor_reporting'),
     path("cashiers/reports/new", CashierReporting.as_view(), name='cashier_reporting'),
+    path("supervisor/cashier/reports/new", ReturnCashierAccount.as_view(), name='return_cashier_account'),
     path("supervisor/reports/<int:pk>/update", UpdateSupervisorReporting.as_view(), name='update_supervisor_reporting'),
     path("cashier/reports/<int:pk>/update", UpdateCashierReporting.as_view(), name='update_cashier_reporting'),
+    path("supervisor/cashier/reports/<int:pk>/update", UpdateReturnCashierAccount.as_view(), name='update_return_cashier_account'),
     path("supervisors/reports/history", daily_supervisor_reports, name='daily_supervisor_reports'),
     path("cashiers/reports/history", daily_cashier_reports, name='daily_cashier_reports'),
     path("agents/logs", vault_log, name='vault_log'),

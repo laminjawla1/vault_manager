@@ -27,7 +27,7 @@
                   <td><a href="{% url 'update_currency_transaction' transaction.id %}">{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</a></td>
                 {% endif %}
                 <td>{{ transaction.customer_name }}</td>
-                <td>{{ transaction.phone }}</td>
+                <td>{{ transaction.phone_number }}</td>
                 <td>{{ transaction.type }}</td>
                 <td>{{ transaction.currency }}</td>
                 <td>{{ transaction.currency_amount|floatformat:2|intcomma }}</td>
@@ -40,18 +40,18 @@
                 {% endif %}
                 <td>{{ transaction.date|date:"F d, Y" }}</td>
                 {% if not user.profile.is_supervisor %}
-                    {% if not borrow.status %}
+                    {% if not transaction.status %}
                         <td>
-                            <form action="{% url 'approve_borrow_request' %}" method="post" enctype="multipart/form-data">
+                            <form action="{% url 'approve_currency_transaction' %}" method="post" enctype="multipart/form-data">
                                 {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ borrow.id }}" />
+                                <input type="hidden" name="id" value="{{ transaction.id }}" />
                                 <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
                             </form>
                         </td>
                         <td>
-                        <form action="{% url 'disapprove_borrow_request' %}" method="post" enctype="multipart/form-data">
+                        <form action="{% url 'disapprove_currency_transaction' %}" method="post" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <input type="hidden" name="id" value="{{ borrow.id }}" />
+                            <input type="hidden" name="id" value="{{ transaction.id }}" />
                             <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
                         </form>
                     </td>

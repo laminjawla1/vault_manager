@@ -176,8 +176,6 @@ class CurrencyTransaction(models.Model):
     customer_name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=50)
     id_number = models.CharField(max_length=50)
-    sell = models.BooleanField(default=False)
-    buy = models.BooleanField(default=False)
     type = models.CharField(max_length=20, choices=(('buy', 'buy'), ('sell', 'sell')))
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     currency_amount = models.FloatField()
@@ -186,11 +184,10 @@ class CurrencyTransaction(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.customer_name
     
     def get_absolute_url(self):
-        if self.buy:
-            return reverse("currencies_bought")
-        return reverse("currencies_sold")
+        return reverse('currency_transactions')

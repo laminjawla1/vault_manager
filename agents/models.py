@@ -30,6 +30,7 @@ class Profile(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.PROTECT, null=True, blank=True)
     is_cashier = models.BooleanField(default=False)
     is_supervisor = models.BooleanField(default=False)
+    has_return = models.BooleanField(default=False)
     cash = models.FloatField(null=False, default=0.0)
     add_cash = models.FloatField(null=False, default=0.0)
     opening_cash = models.FloatField(null=False, default=0.0)
