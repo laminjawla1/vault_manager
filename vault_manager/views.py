@@ -1109,10 +1109,10 @@ class CurrencyTransact(LoginRequiredMixin, CreateView):
             
         if form.instance.type == "buy":
             movement = Movement(name=self.request.user,
-                            action=f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
+                            action=f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
         else:
             movement = Movement(name=self.request.user,
-                            action=f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
+                            action=f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
         movement.save()
 
         if form.instance.type == "buy":
