@@ -675,7 +675,7 @@ class RefundAgent(LoginRequiredMixin, CreateView):
 class WithdrawCash(LoginRequiredMixin, CreateView):
     model = Withdraw
     template_name = "vault/withdraw_form.html"
-    fields = ['bank', 'cheque_number', 'amount', 'account']
+    fields = ['bank', 'cheque_number', 'amount', 'account', 'comment']
 
     def form_valid(self, form):
         form.instance.withdrawer = self.request.user
@@ -733,7 +733,7 @@ class BorrowCash(LoginRequiredMixin, CreateView):
 class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):
     model = Withdraw
     template_name = "vault/withdraw_form.html"
-    fields = ['bank', 'cheque_number', 'amount', 'account']
+    fields = ['bank', 'cheque_number', 'amount', 'account', 'comment']
 
     def form_valid(self, form):
         movement = Movement(name=self.request.user, action=f"Updated the withdrawal request of \
@@ -785,8 +785,7 @@ class UpdateBorrowCash(LoginRequiredMixin, UpdateView):
 class SupervisorReporting(LoginRequiredMixin, CreateView):
     model = MainVault
     template_name = "vault/daily_report_form.html"
-    fields = ['opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         if self.request.user.profile.has_return:
@@ -817,8 +816,7 @@ class SupervisorReporting(LoginRequiredMixin, CreateView):
 class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = MainVault
     template_name = "vault/daily_report_form.html"
-    fields = ['opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         form.instance.reporter = self.request.user
@@ -842,8 +840,9 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
 class CashierReporting(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance']
+    # fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+    #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
         if self.request.user.profile.has_return:
@@ -873,8 +872,9 @@ class CashierReporting(LoginRequiredMixin, CreateView):
 class ReturnCashierAccount(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+    # fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
+    #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
     def form_valid(self, form):
         if form.instance.reporter.profile.has_return:
@@ -909,8 +909,7 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")
@@ -928,8 +927,7 @@ class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView
 class UpdateReturnCashierAccount(LoginRequiredMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-              'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")
@@ -1006,7 +1004,7 @@ def generate_withdrawal_report(request):
     if not dw:
         messages.error(request, "No withdrawal Reports Available For Export")
         return HttpResponseRedirect(reverse("dashboard"))
-    headers  =["AGENT FULLNAME", "ZONE", "AMOUNT","STATUS", "DATE"]
+    headers  =["AGENT FULLNAME", "ZONE", "BANK", "CHEQUE NUMBER", "AMOUNT", "STATUS", "COMMENT", "DATE"]
     
     response = HttpResponse(
         content_type='text/csv',
@@ -1016,8 +1014,8 @@ def generate_withdrawal_report(request):
     writer.writerow(["DAILY WITHDRAWAL REPORTS"])
     writer.writerow(headers)
     for w in dw:
-        writer.writerow((f'{w.withdrawer.first_name} {w.withdrawer.last_name}', w.withdrawer.profile.zone.name,
-                          w.amount, w.status, w.date.strftime("%Y-%m-%d")))
+        writer.writerow((f'{w.withdrawer.first_name} {w.withdrawer.last_name}', w.withdrawer.profile.zone.name, w.bank, w.cheque_number,
+                          w.amount, w.status, w.comment, w.date.strftime("%Y-%m-%d")))
 
     return response
 

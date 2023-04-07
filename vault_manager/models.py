@@ -134,6 +134,7 @@ class Withdraw(models.Model):
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     withdrawer = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.withdrawer}"
