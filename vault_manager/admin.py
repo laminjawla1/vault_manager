@@ -8,10 +8,8 @@ import csv
 def generate_cashier_report(modeladmin, request, queryset):
     if not request.user.is_staff:
         raise PermissionDenied()
-    cr = ZoneVault.objects.all().order_by("date")
 
-    headers  =["ZONE", "BRANCH", "TELLER", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO", 
-               "USD", "GBP", "CFA", "Swiss Krona", "Nor Krona", "Swiss Franck", "Denish Krona", "Cad Dollar", "DATE"]
+    headers  =["ZONE", "BRANCH", "LOCATION", "TELLER", "OPENING CASH", "ADDITIONAL CASH", "CLOSING BALANCE", "STATUS", "DATE"]
     
     response = HttpResponse(
         content_type='text/csv',
@@ -20,20 +18,15 @@ def generate_cashier_report(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(["DAILY CASHIER REPORTS"])
     writer.writerow(headers)
+    cr = queryset.values_list('zone__name', 'branch__name', 'location__name', 'reporter__username', 'opening_cash', 'additional_cash',
+                                'closing_balance', 'status', 'date')
     for r in cr:
-        writer.writerow((r.reporter.profile.zone.name, r.reporter.profile.branch.name, f'{r.reporter.first_name} {r.reporter.last_name}',
-                                r.opening_cash, r.additional_cash, r.opening_cash + r.additional_cash, r.closing_balance,
-                                r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona, 
-                                r.cad_dollar, r.date.strftime("%Y-%m-%d")))
+        writer.writerow(r)
     return response
 
+
 def generate_supervisor_report(modeladmin, request, queryset):
-    
-    cr = MainVault.objects.all().order_by("date")
-    
-    headers  =["ZONE", "SUPERVISOR", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO", 
-               "USD", "GBP", "CFA", "Swiss Krona", "Nor Krona", "Swiss Franck", "Denish Krona", "Cad Dollar", "DATE"]
-    
+    headers  =["ZONE", "SUPERVISOR", "OPENING CASH", "ADDITIONAL CASH", "CLOSING BALANCE", "STATUS", "DATE"]
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="supervisor_reports.csv"'},
@@ -41,17 +34,14 @@ def generate_supervisor_report(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(["DAILY SUPERVISOR REPORTS"])
     writer.writerow(headers)
+    cr = queryset.values_list('zone__name', 'reporter__username', 'opening_cash', 'additional_cash', 'closing_balance', 'status', 'date')
     for r in cr:
-        writer.writerow((r.reporter.profile.zone.name, f'{r.reporter.first_name} {r.reporter.last_name}',
-                                r.opening_cash, r.additional_cash, r.opening_cash + r.additional_cash, r.closing_balance,
-                                r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona, 
-                                r.cad_dollar, r.date.strftime("%Y-%m-%d")))
+        writer.writerow(r)
     return response
 
+
 def generate_withdrawal_report(modeladmin, request, queryset):
-    dw = Withdraw.objects.all().order_by("date")
-    headers  =["AGENT FULLNAME", "ZONE", "AMOUNT","STATUS", "DATE"]
-    
+    headers  =["AGENT", "ZONE", "AMOUNT","STATUS", "DATE"]
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
@@ -59,16 +49,14 @@ def generate_withdrawal_report(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(["DAILY WITHDRAWAL REPORTS"])
     writer.writerow(headers)
+    dw = queryset.values_list("withdrawer__username", "withdrawer__profile__zone__name", "amount", "status", "date")
     for w in dw:
-        writer.writerow((f'{w.withdrawer.first_name} {w.withdrawer.last_name}', w.withdrawer.profile.zone.name,
-                          w.amount, w.status, w.date.strftime("%Y-%m-%d")))
-
+        writer.writerow(w)
     return response
 
+
 def generate_cashier_deposit_report(modeladmin, request, queryset):
-    cd = Deposit.objects.filter(cashier=True).all().order_by("date")
     headers  =["ZONE", "BRANCH", "TELLER", "AMOUNT", "DEPOSIT TYPE", "DATE"]
-    
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
@@ -77,15 +65,14 @@ def generate_cashier_deposit_report(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(["DAILY CASHIER DEPOSIT REPORTS"])
     writer.writerow(headers)
+    cd = queryset.values_list("agent__profile__zone__name", "agent__profile__branch__name", "agent__username", "amount", "deposit_type", "date")
     for d in cd:
-        writer.writerow((d.agent.profile.zone.name, d.agent.profile.branch.name, f'{d.agent.first_name} {d.agent.last_name}',
-                         d.amount, d.deposit_type, d.date.strftime("%Y-%m-%d")))
+        writer.writerow(d)
     return response
 
+
 def generate_supervisor_deposit_report(modeladmin, request, queryset):
-    sd = Deposit.objects.filter(supervisor=True).all().order_by("date")
     headers  =["ZONE", "SUPERVISOR", "AMOUNT", "DEPOSIT TYPE", "DATE"]
-    
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
@@ -94,11 +81,11 @@ def generate_supervisor_deposit_report(modeladmin, request, queryset):
     writer = csv.writer(response)
     writer.writerow(["DAILY SUPERVISOR DEPOSIT REPORTS"])
     writer.writerow(headers)
+    sd = queryset.values_list("agent__profile__zone__name", "agent__username", "amount", "deposit_type", "date")
     for d in sd:
-        writer.writerow((d.agent.profile.zone.name, f'{d.agent.first_name} {d.agent.last_name}', d.amount, d.deposit_type, 
-                         d.date.strftime("%Y-%m-%d")))
-
+        writer.writerow(d)
     return response
+
 
 generate_cashier_report.short_description = 'Export Cashier Reports as csv'
 generate_supervisor_report.short_description = 'Export Supervisor Report as csv'
@@ -107,11 +94,11 @@ generate_supervisor_deposit_report.short_description = 'Export Supervisor Deposi
 generate_withdrawal_report.short_description = 'Export Withdrawal Report as csv'
 
 class MainVaultAdmin(admin.ModelAdmin):
-    list_display = ['reporter','zone', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    search_fields = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
+    list_display = ['reporter', 'zone', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
+    search_fields = ['reporter__username', 'zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
     sortable_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
     filter_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    list_filter = ['reporter__username','zone__name', 'date']
+    list_filter = ['zone__name', 'date']
     readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date', 'euro', 'us_dollar', 
                        'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
     fieldsets = (
@@ -131,13 +118,13 @@ class MainVaultAdmin(admin.ModelAdmin):
     actions = [generate_supervisor_report]
 
 class ZoneVaultAdmin(admin.ModelAdmin):
-    list_display = ['reporter','zone', 'branch', 'location', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    search_fields = ['reporter__username','zone__name', 'location__name', 'branch__name', 'opening_cash',
+    list_display = ['cashier_name','zone', 'branch', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
+    search_fields = ['cashier_name','zone__name', 'branch__name', 'opening_cash',
                       'additional_cash', 'closing_balance', 'date']
-    sortable_by = ['reporter__username','zone__name', 'branch__name', 'location__name','opening_cash', 'additional_cash',
+    sortable_by = ['cashier_name','zone__name', 'branch__name', 'opening_cash', 'additional_cash',
                     'closing_balance', 'date']
-    filter_by = ['reporter__username','zone__name', 'branch__name', 'location__name', 'date']
-    list_filter = ['reporter__username','zone__name', 'branch__name', 'location__name', 'date']
+    filter_by = ['cashier_name','zone__name', 'branch__name', 'location__name', 'date']
+    list_filter = ['zone__name', 'branch__name', 'date']
     readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date', 'euro', 'us_dollar', 
                        'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
     fieldsets = (
@@ -164,9 +151,9 @@ class AccountAdmin(admin.ModelAdmin):
     readonly_fields = ['balance', 'date']
 
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ['agent', 'amount', 'account', 'deposit_type', 'status', 'date']
-    filter_by = ['agent__username', 'account__name', 'deposit_type', 'status', 'date']
-    list_filter = ['agent__username', 'account__name', 'deposit_type', 'status', 'date']
+    list_display = ['agent', 'amount', 'account', 'deposit_type', 'cashier', 'supervisor', 'status', 'date']
+    filter_by = ['agent__username', 'account__name', 'deposit_type', 'cashier', 'supervisor', 'status', 'date']
+    list_filter = ['deposit_type', 'cashier', 'supervisor', 'status', 'date']
     sortable_by = ['agent__name', 'amount', 'account__name', 'deposit_type', 'status', 'date']
     search_fields = ['agent__username', 'amount', 'account__name', 'deposit_type', 'status', 'date']
     readonly_fields = ['agent', 'amount', 'account', 'deposit_type', 'status', 'date', 'cashier', 'supervisor']

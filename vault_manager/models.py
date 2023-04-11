@@ -51,6 +51,7 @@ class Account(models.Model):
 class ZoneVault(models.Model):
     class Meta:
         verbose_name_plural = "Zone Vault"
+    cashier_name = models.CharField(max_length=50)
     date = models.DateTimeField(null=False, default=timezone.now)
     opening_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
     additional_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
@@ -73,7 +74,6 @@ class ZoneVault(models.Model):
     reporter = models.ForeignKey(User, on_delete=models.CASCADE)
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, default="")
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, default="")
-    location = models.ForeignKey(Branch, on_delete=models.CASCADE, null=True, blank=True, related_name="location")
 
     def __str__(self) -> str:
         return f"Opening cash: {self.opening_cash}"

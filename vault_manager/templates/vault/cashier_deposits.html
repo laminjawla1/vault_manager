@@ -8,7 +8,6 @@
         <tr>
         <th scope="col">Zone</th>
         <th scope="col">Branch</th>
-        <th scope="col">Cashier</th>
         <th scope="col">Amount</th>
         <th scope="col">Type</th>
         <th scope="col">Status</th>
@@ -18,13 +17,12 @@
     <tbody>
         {% for deposit in deposits %}
             <tr>
+              <td>{{ deposit.agent.profile.zone}}</td>
+              {% if deposit.status or user.profile.is_supervisor %}
                 <td>{{ deposit.agent.profile.branch}}</td>
-                {% if deposit.status or user.profile.is_supervisor %}
-                  <td>{{ deposit.agent.profile.zone}}</td>
                 {% else %}
-                  <td><a href="{% url 'update_cashier_deposit' deposit.id %}">{{ deposit.agent.profile.zone}}</a></td>
+                  <td><a href="{% url 'update_cashier_deposit' deposit.id %}">{{ deposit.agent.profile.branch}}</a></td>
                 {% endif %}
-                <td>{{ deposit.agent.first_name }} {{ deposit.agent.last_name }}</td>
                 <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
                 <td>{{ deposit.deposit_type }}</td>
                 {% if deposit.status %}

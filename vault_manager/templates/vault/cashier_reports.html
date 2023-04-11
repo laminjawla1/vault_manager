@@ -7,7 +7,6 @@
             <tr>
                 <th scope="col">Zone</th>
                 <th scope="col">Branch</th>
-                <th scope="col">Location</th>
                 <th scope="col">Teller</th>
                 <th scope="col">Opening Cash</th>
                 <th scope="col">Additional Cash</th>
@@ -34,8 +33,7 @@
                 {% else %}
                 <td>{{ report.reporter.profile.branch }}</td>
                 {% endif %}
-                <td>{{ report.location }}</td>
-                <td>{{ report.reporter.first_name }} {{ report.reporter.last_name }}</td>
+                <td>{{ report.cashier_name }}</td>
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
                 <td>{{report.closing_balance|floatformat:2|intcomma }}</td>

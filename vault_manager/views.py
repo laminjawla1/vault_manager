@@ -840,7 +840,7 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
 class CashierReporting(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
     # fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
     #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
@@ -872,7 +872,7 @@ class CashierReporting(LoginRequiredMixin, CreateView):
 class ReturnCashierAccount(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
     # fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
     #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
 
@@ -909,7 +909,7 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")
@@ -927,7 +927,7 @@ class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView
 class UpdateReturnCashierAccount(LoginRequiredMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")

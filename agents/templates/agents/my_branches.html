@@ -7,7 +7,6 @@
     <tr>
       <th scope="col">Zone</th>
       <th scope="col">Branch</th>
-      <th scope="col">Cashier</th>
       <th scope="col">Opening Cash</th>
       <th scope="col">Additional Cash</th>
       <th scope="col">Closing Balance</th>
@@ -17,9 +16,8 @@
     {% for branch in branches %}
     <tr>
         <td>{{ branch.teller.profile.zone }}</td>
-        <td>{{ branch.name }}</t>
         {% if branch.teller %}
-            <td>{{ branch.teller.first_name}} {{ branch.teller.last_name }}</td>
+          <td>{{ branch.name }}</t>
         {% if branch.teller.profile.cash %}
           <td style="color: green">{{ branch.teller.profile.cash|floatformat:2|intcomma }}</td>
         {% else %}
@@ -31,7 +29,6 @@
           <td style="color: red">{{ branch.teller.profile.add_cash|floatformat:2|intcomma }}</td>
         {% endif %}
       {% else %}
-        <td style="color: red">N/A</td>
         <td style="color: red">N/A</td>
         <td style="color: red">N/A</td>
         {% endif %}
