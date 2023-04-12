@@ -19,6 +19,7 @@ class AccountsUserAdmin(AuthUserAdmin):
 
 class BranchAdmin(admin.ModelAdmin):
     list_display = ('name', 'teller')
+    filter_by = ['name', 'teller']
     search_fields = ('name', 'teller__username')
     sortable_by = ['name', 'teller__username']
 
