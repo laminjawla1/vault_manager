@@ -7,7 +7,6 @@
     <tr>
       <th scope="col">Zone</th>
       <th scope="col">Branch</th>
-      <th scope="col">Cashier</th>
       <th scope="col">Opening Cash</th>
       <th scope="col">Additional Cash</th>
       <th scope="col">Closing Balance</th>
@@ -17,9 +16,8 @@
     {% for branch in branches %}
     <tr>
         <td>{{ branch.teller.profile.zone }}</td>
-        <td>{{ branch.name }}</t>
         {% if branch.teller %}
-            <td>{{ branch.teller.first_name}} {{ branch.teller.last_name }}</td>
+          <td>{{ branch.name }}</t>
         {% if branch.teller.profile.cash %}
           <td style="color: green">{{ branch.teller.profile.cash|floatformat:2|intcomma }}</td>
         {% else %}
@@ -43,7 +41,7 @@
     </tr>
     {% endfor %}
     <tr>
-      <td scope="col" colspan="3" style="font-weight: bold; color: red;">TOTALS</td>
+      <td scope="col" colspan="2" style="font-weight: bold; color: red;">TOTALS</td>
       <td scope="col" style="font-weight: bold;">{{ total_op|floatformat:2|intcomma }}</td>
       <td scope="col" style="font-weight: bold;">{{ total_ad|floatformat:2|intcomma }}</td>
       <td scope="col" style="font-weight: bold;">{{ total_cs|floatformat:2|intcomma }}</td>
