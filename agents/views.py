@@ -37,7 +37,7 @@ def zones(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
-    zones = Zone.objects.all().order_by('name')
+    zones = Zone.objects.all().order_by('name').exclude(name="Head Office")
 
     total_op = Zone.objects.all().aggregate(Sum('supervisor__profile__cash')).get('supervisor__profile__cash__sum')
     total_ad = Zone.objects.all().aggregate(Sum('supervisor__profile__add_cash')).get('supervisor__profile__add_cash__sum')
