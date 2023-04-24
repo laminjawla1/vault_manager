@@ -5,6 +5,7 @@ body {
   font-family: 'Poppins', sans-sherif;
   align-items: center;
   justify-content: center;
+  overflow-wrap: break-word;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -79,11 +80,6 @@ a.article-title:hover {
 
 .account-heading {
   font-size: 2.5rem;
-}
-
-
-a:hover {
-  text-transform: uppercase;
 }
 
 .material-icons-outlined {

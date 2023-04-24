@@ -15,7 +15,7 @@
     {% for zone in zones %}
     <tr>
       {% if zone.supervisor %}
-        <td><a href="{% url 'branches_under' zone.supervisor.username %}">{{ zone.name }}</a></td>
+        <td><a type="branches_under" href="{% url 'branches_under' zone.supervisor.username %}">{{ zone.name }}</a></td>
       {% else %}
         <td>{{ zone.name }}</td>
       {% endif %}

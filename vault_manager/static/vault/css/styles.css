@@ -82,9 +82,8 @@ a.article-title:hover {
   font-size: 2.5rem;
 }
 
-
-a:hover {
-  text-transform: uppercase;
+a[type="branches_under"]{
+  color:#850e65
 }
 
 .material-icons-outlined {
