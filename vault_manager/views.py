@@ -902,7 +902,10 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
     
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True, 
+        if self.request.user.is_staff and not self.request.user.profile.is_supervisor:
+            form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True).all()
+        else:
+            form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True, 
                                                             profile__zone=self.request.user.profile.zone).exclude(id=self.request.user.id)
         return form
     
