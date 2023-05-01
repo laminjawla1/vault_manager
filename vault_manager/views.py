@@ -905,8 +905,9 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
         if self.request.user.is_staff and not self.request.user.profile.is_supervisor:
             form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True).all()
         else:
-            form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True, 
-                                                            profile__zone=self.request.user.profile.zone).exclude(id=self.request.user.id)
+            form.fields['reporter'].queryset = sorted(User.objects.filter(profile__is_cashier=True, 
+                                                profile__zone=self.request.user.profile.zone).\
+                                                    exclude(id=self.request.user.id), key=lambda x: x.username)
         return form
     
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
