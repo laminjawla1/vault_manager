@@ -301,6 +301,8 @@ def reports(request):
         return render(request, "vault/c_reports.html", {
             'reports': paginator
         })
+    elif request.user.is_staff:
+        return HttpResponseRedirect(reverse('daily_cashier_reports'))
     raise PermissionDenied()
 
 
@@ -894,8 +896,8 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
-        if (not self.request.user.profile.is_supervisor) and (not self.request.user.is_staff):
-            raise PermissionDenied()
+        # if (not self.request.user.profile.is_supervisor) and (not self.request.user.is_staff):
+        #     raise PermissionDenied()
         context = super(ReturnCashierAccount, self).get_context_data(*args, **kwargs)
         context['button'] = 'Send'
         return context
