@@ -145,6 +145,23 @@ class Withdraw(models.Model):
             return reverse('my_withdrawals')
         return reverse('withdrawals')
     
+class BankDeposit(models.Model):
+    bank = models.ForeignKey(Bank, on_delete=models.CASCADE)
+    amount = models.FloatField(blank=False, null=False)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    date = models.DateTimeField(null=False, default=timezone.now)
+    status = models.BooleanField(default=False)
+    depositor = models.ForeignKey(User, on_delete=models.CASCADE)
+    comment = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.depositor}"
+    
+    def get_absolute_url(self):
+        if self.depositor.profile.is_supervisor:
+            return reverse('my_bank_deposits')
+        return reverse('bank_deposits')
+    
 class Borrow(models.Model):
     class Meta:
         verbose_name_plural = "Withdrawals"

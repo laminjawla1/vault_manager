@@ -1,4 +1,4 @@
-from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow, CurrencyTransaction)
+from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow, CurrencyTransaction, BankDeposit)
 from agents.models import Movement
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
@@ -693,6 +693,34 @@ class WithdrawCash(LoginRequiredMixin, CreateView):
         send_mail(
             'Cash Withdrawal Request',
             f'{self.request.user.first_name} {self.request.user.last_name} sent a withdrawal request of {gmd(form.instance.amount)}.', 
+            'yonnatech.g@gmail.com',
+            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
+            fail_silently=False,
+        )
+        messages.success(self.request, "Cash withdrawal request is sent successfully")
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        if self.request.user.is_staff or self.request.user.profile.is_supervisor:
+            context = super(WithdrawCash, self).get_context_data(*args, **kwargs)
+            context['button'] = 'Withdraw'
+            context['legend'] = 'Withdraw Cash'
+            return context
+        raise PermissionDenied()
+
+class DepositCash(LoginRequiredMixin, CreateView):
+    model = BankDeposit
+    template_name = "vault/withdraw_form.html"
+    fields = ['bank', 'amount', 'account', 'comment']
+
+    def form_valid(self, form):
+        form.instance.depositor = self.request.user
+        movement = Movement(name=self.request.user, action=f"Sent a deposit request of amount {gmd(form.instance.amount)}.")
+        movement.save()
+
+        send_mail(
+            'Cash Withdrawal Request',
+            f'{self.request.user.first_name} {self.request.user.last_name} sent a deposit request of {gmd(form.instance.amount)}.', 
             'yonnatech.g@gmail.com',
             [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,

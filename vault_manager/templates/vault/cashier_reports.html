@@ -83,6 +83,6 @@
 
     {% if reports.has_next %}
       <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashier_reports' %}?page={{ reports.next_page_number }}">Next</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'dailycashierr_reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
+      <a class="btn btn-outline-info mb-4" href="{% url 'daily_cashierr_reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
     {% endif %}
 {% endblock content %}
