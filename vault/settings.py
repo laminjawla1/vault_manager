@@ -87,6 +87,17 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': os.environ.get('yonna_vault_db_name'),
+#         'USER': os.environ.get('yonna_vault_db_username'),
+#         'PASSWORD': os.environ.get('yonna_vault_db_password'),
+#         'HOST': os.environ.get('database_host'),
+#         'PORT': '3306',
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

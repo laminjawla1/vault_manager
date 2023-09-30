@@ -1,0 +1,247 @@
+* {
+    box-sizing: border-box;
+  }
+  body {
+    padding-top: 63px;
+    background: #b989ad;
+    color: #333333;
+    font-family: 'Poppins', sans-sherif;
+    align-items: center;
+    justify-content: center;
+    overflow-wrap: break-word;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: #914790;;
+  }
+  
+  ul {
+    margin: 0;
+  }
+  
+  .bg-steel {
+    background-color:#490549
+  }
+  
+  .site-header .navbar-nav .nav-link {
+    color: #cbd5db;
+  }
+  
+  .site-header .navbar-nav .nav-link:hover {
+    color: #ffffff;
+  }
+  
+  .site-header .navbar-nav .nav-link.active {
+    font-weight: 500;
+  }
+  
+  .content-section {
+    background: #e0bfdb;
+    padding: 10px 20px;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  
+  
+  .article-title {
+    color: #444444;
+  }
+  
+  a.article-title:hover {
+    color: #ca42af;
+    text-decoration: none;
+  }
+  
+  .article-content {
+    white-space: pre-line;
+  }
+  
+  .article-metadata {
+    padding-bottom: 1px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #e3e3e3
+  }
+  
+  .article-metadata a:hover {
+    color: #333;
+    text-decoration: none;
+  }
+  
+  .article-svg {
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+  }
+  
+  .account-img {
+    height: 135px;
+    width: 135px;
+    margin-right: 25px;
+    margin-bottom: 21px;
+  }
+  
+  .account-heading {
+    font-size: 2.5rem;
+  }
+  
+  a[type="branches_under"]{
+    color:#850e65
+  }
+  
+  .material-icons-outlined {
+    vertical-align: middle;
+    line-height: 1px;
+    font-size: 35px;
+  }
+  
+  .grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 0.2fr 3fr;
+    grid-template-areas:
+      "sidebar header header header"
+      "sidebar main main main";
+    height: 100vh;
+  }
+  
+  
+  .menu-icon {
+    display: none;
+  }
+  
+  
+  
+  /* ---------- MAIN ---------- */
+  
+  .main-container {
+    display: flex;
+    flex-wrap: wrap;
+    color: rgba(255, 255, 255, 0.95);
+  }
+  
+  .main-container div.dropdown {
+    flex-basis: 100%;
+  }
+  .main-cards {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .main-cards1 {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .main-cards2 {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .card {
+    flex-basis: 100%;
+    padding: 25px;
+    border-radius: 10px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    margin: 20px;
+    width: 75px;
+  }
+  
+  .card:first-child {
+    background-color: #2962ff;
+  }
+  
+  .card:nth-child(2) {
+    background-color: #ff6d00;
+  }
+  
+  .card:nth-child(3) {
+    background-color: #2e7d32;
+  }
+  
+  .card:nth-child(4) {
+    background-color: #d50000;
+  }
+  
+  .card-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px;
+  }
+  
+  .card-inner > .material-icons-outlined {
+    font-size: 45px;
+  }
+  
+  @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+  
+  a {
+      color: #fff;
+      text-decoration: none;
+  }
+  
+  .ticker {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 1100px;
+      height: 59px;
+      margin: 10px auto;
+  }
+  .news {
+      width: 76%;
+      background: #581943;
+      color: white;
+      padding: 0 2%;
+      margin: 1% 10px;
+  }
+  .title {
+      width: 21%;
+      text-align: center;
+      background: #850e65;
+      position: relative;
+      color: white;
+  }
+  .title:after {
+      position: absolute;
+      content: "";
+      right: -14%;
+      border-left: 20px solid #eddcdc;
+      border-top: 30px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 28px solid transparent;
+      top: 0;
+  }
+  .title h5 {
+      font-size: 18px;
+      margin: 6% 0;
+  }
+  .news marquee {
+      font-size: 18px;
+  }
+  
+  .flex-wrapper {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  
+  form[id="login-form"] {
+    margin:auto;
+  }
+  
+  .login-form {
+    padding: 30px 38px 55px;
+    border: 5px dotted rgb(255, 255, 255) center;
+    color: white;
+    height: 450px;
+    max-width: 80px;
+    min-width: 45%;
+    margin: auto;
+    padding-bottom: 2em;
+    background-color: #b136a6;
+  }
+  

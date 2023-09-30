@@ -53,17 +53,17 @@
                 {% else %}
                     <td style="color: red">Pending</td>
                 {% endif %}
-                {% if not user.profile.is_supervisor %}
-                    {% if not report.status %}
-                        <td>
-                            <form action="{% url 'approve_cashier_report' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ report.id }}" />
-                                <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                            </form>
-                        </td>
-                    {% endif %}
+                {% comment %} {% if not user.profile.is_supervisor %} {% endcomment %}
+                {% if not report.status %}
+                    <td>
+                        <form action="{% url 'approve_cashier_report' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ report.id }}" />
+                            <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
+                        </form>
+                    </td>
                 {% endif %}
+                {% comment %} {% endif %} {% endcomment %}
             </tr>
         {% endfor %}
     </tbody>

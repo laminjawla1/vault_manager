@@ -325,19 +325,21 @@ def daily_supervisor_reports(request):
 
 @login_required
 def daily_cashier_reports(request):
-    if request.user.is_staff:
-        reports = ZoneVault.objects.all().order_by('-date')
-        page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 8)
+    reports = ZoneVault.objects.all().order_by('-date')
+    if request.user.profile.is_supervisor:
+        reports = ZoneVault.objects.filter(
+            reporter__profile__zone=request.user.profile.zone
+        ).all().order_by('-date')
+    page = request.GET.get('page', 1)
+    paginator = Paginator(reports, 8)
 
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
-        return render(request, "vault/cashier_reports.html", {
-            'reports': paginator
-        })
-    raise PermissionDenied()
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+    return render(request, "vault/cashier_reports.html", {
+        'reports': paginator
+    })
 
 
 class CreditSupervisorAccount(LoginRequiredMixin, CreateView):
@@ -518,6 +520,8 @@ def approve_cashier_report(request):
         report.reporter.profile.additional_cash = 0
         report.reporter.profile.has_return = True
         report.reporter.profile.closing_balance = report.closing_balance
+        report.reporter.profile.zone.supervisor.profile.closing_balance += report.closing_balance
+        report.reporter.profile.zone.supervisor.profile.save()
 
         movement = Movement(name=request.user,
                             action=f"Approved {report.reporter.username}'s report")
@@ -677,7 +681,7 @@ class RefundAgent(LoginRequiredMixin, CreateView):
 class WithdrawCash(LoginRequiredMixin, CreateView):
     model = Withdraw
     template_name = "vault/withdraw_form.html"
-    fields = ['bank', 'cheque_number', 'amount', 'account', 'comment']
+    fields = ['bank', 'cheque_number', 'amount', 'account', 'image', 'comment']
 
     def form_valid(self, form):
         form.instance.withdrawer = self.request.user
@@ -907,9 +911,10 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
         if self.request.user.is_staff and not self.request.user.profile.is_supervisor:
             form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True).all()
         else:
-            form.fields['reporter'].queryset = sorted(User.objects.filter(profile__is_cashier=True, 
-                                                profile__zone=self.request.user.profile.zone).\
-                                                    exclude(id=self.request.user.id), key=lambda x: x.username)
+            form.fields['reporter'].queryset = User.objects.filter(
+                                                profile__is_cashier=True,
+                                                profile__zone=self.request.user.profile.zone
+                                                ).exclude(id=self.request.user.id).order_by('profile__branch__name')
         return form
     
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -948,7 +953,7 @@ class UpdateReturnCashierAccount(LoginRequiredMixin, UpdateView):
         context['button'] = 'Update'
         return context
 
-
+@login_required
 def generate_cashier_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
@@ -974,7 +979,7 @@ def generate_cashier_report(request):
                                 r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona, 
                                 r.cad_dollar, r.date.strftime("%Y-%m-%d")))
     return response
-
+@login_required
 def generate_supervisor_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
@@ -1002,6 +1007,7 @@ def generate_supervisor_report(request):
                                 r.status, r.cad_dollar, r.date.strftime("%Y-%m-%d")))
     return response
 
+@login_required
 def generate_withdrawal_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
@@ -1025,6 +1031,7 @@ def generate_withdrawal_report(request):
 
     return response
 
+@login_required
 def generate_cashier_deposit_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
@@ -1051,6 +1058,7 @@ def generate_cashier_deposit_report(request):
                          d.amount, d.deposit_type, d.status, d.date.strftime("%Y-%m-%d")))
     return response
 
+@login_required
 def generate_supervisor_deposit_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()

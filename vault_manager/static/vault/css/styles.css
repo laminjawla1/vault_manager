@@ -8,6 +8,12 @@ body {
   overflow-wrap: break-word;
 }
 
+#cashier-report {
+  margin-left: 10px;
+}
+#supervisor-cashier-report-button {
+  margin-bottom: 5px;
+}
 h1, h2, h3, h4, h5, h6 {
   color: #914790;;
 }
@@ -17,7 +23,7 @@ ul {
 }
 
 .bg-steel {
-  background-color:#490549
+  background-color:#600060
 }
 
 .site-header .navbar-nav .nav-link {

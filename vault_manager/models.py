@@ -103,9 +103,9 @@ class Deposit(models.Model):
 
 class Refund(models.Model):
     refund_type = models.CharField(max_length=50, choices=[('Add to Opening Cash', 'Add to Opening Cash'), 
-                                                           ('Add to Additional Cash', 'Add to Additional Cash'),
-                                                           ('Deduct from Opening Cash', 'Deduct from Opening Cash'),
-                                                           ('Deduct from Additional Cash', 'Deduct from Additional Cash')])
+                                                        ('Add to Additional Cash', 'Add to Additional Cash'),
+                                                        ('Deduct from Opening Cash', 'Deduct from Opening Cash'),
+                                                        ('Deduct from Additional Cash', 'Deduct from Additional Cash')])
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.FloatField(blank=False, null=False)
     date = models.DateTimeField(null=False, default=timezone.now)
@@ -135,6 +135,7 @@ class Withdraw(models.Model):
     status = models.BooleanField(default=False)
     withdrawer = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField(null=True, blank=True)
+    image = models.ImageField(upload_to='cheque_images', null=True, blank=True)
 
     def __str__(self):
         return f"{self.withdrawer}"

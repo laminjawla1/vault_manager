@@ -27,7 +27,7 @@
         <title>Yonna Vault</title>
     {% endif %}
 </head>
-<body style="background-color: #b989ad;">
+<body style="background-color: #dcc;">
 {% if user.is_authenticated %}
     <header class="site-header col-md-12">
         <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
@@ -48,7 +48,7 @@
                                 <a class="nav-item nav-link" href="{% url 'currency_transactions' %}">Currencies</a>
                                 {% if user.is_staff and not user.profile.is_supervisor %}
                                     <a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a>
-                                    <a class="nav-item nav-link" href="{% url 'borrows' %}">Borrows</a>
+                                    <a class="nav-item nav-link" href="{% url 'borrows' %}">Loans</a>
                                     <a class="nav-item nav-link" href="{% url 'vault_log' %}">Vault Log</a>
                                 {% endif %}
                                 <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"

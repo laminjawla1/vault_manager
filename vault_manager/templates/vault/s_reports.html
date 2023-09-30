@@ -2,7 +2,10 @@
 {% load humanize %}
 {% block content %}
     <h1>My Reports</h1>
-    <a class="btn btn-primary" href="{% url 'supervisor_reporting' %}">New</a>
+    <div id="supervisor-cashier-report-button">
+      <a class="btn btn-primary" href="{% url 'supervisor_reporting' %}">New</a>
+      <a id="cashier-report" class="btn btn-secondary" href="{% url 'daily_cashier_reports' %}">Cashier Reports</a>
+    </div>
     <table class="table table-striped table-bordered">
     <thead class="thead-dark">
         <tr>
