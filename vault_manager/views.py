@@ -460,8 +460,10 @@ class CreditCashierAccount(LoginRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.filter(profile__is_cashier=True, 
-                                                            profile__zone=self.request.user.profile.zone).exclude(id=self.request.user.id)
+        form.fields['agent'].queryset = User.objects.filter(
+                                            profile__is_cashier=True, 
+                                            profile__zone=self.request.user.profile.zone
+                                        ).exclude(id=self.request.user.id).order_by('username')
         return form
 
 class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
