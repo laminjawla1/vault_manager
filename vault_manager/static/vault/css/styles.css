@@ -1,5 +1,8 @@
+* {
+  box-sizing: border-box;
+}
 body {
-  padding-top: 63px;
+  padding-top: 70px;
   background: #b989ad;
   color: #333333;
   font-family: 'Poppins', sans-sherif;
@@ -7,9 +10,36 @@ body {
   justify-content: center;
   overflow-wrap: break-word;
 }
-
+#bar-container {
+  background-color:#490549;
+  text-align: center;
+}
+#side-bar-container {
+  background-color:#490549;
+}
+.current-date, .username, #top-bar, .cat {
+  color: #fff;
+}
+.username {
+  font-size: medium;
+}
+.current-date {
+  font-size: small;
+  /* padding-bottom: 5px; */
+  margin-top: -20px;
+}
+#top-bar {
+  background-color:#490549;
+  color: #fff;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: 25px
+  /* margin-left: 10px; */
+}
 #cashier-report {
   margin-left: 10px;
+}
+#category1Items {
+  list-style: none;
 }
 #supervisor-cashier-report-button {
   margin-bottom: 5px;

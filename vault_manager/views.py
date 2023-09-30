@@ -83,7 +83,7 @@ def dashboard(request):
         'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
         'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
         'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports, 'borrow_amount': borrow_amount,
-        't_borrows': t_borrows
+        't_borrows': t_borrows, 'current_date' : datetime.now()
     })
     
 @login_required
@@ -94,7 +94,7 @@ def cashier_deposits(request):
     deposits = Deposit.objects.filter(cashier=True).all().order_by('-date')
     page = request.GET.get('page', 1)
 
-    paginator = Paginator(deposits, 8)
+    paginator = Paginator(deposits, 20)
 
     try:
         paginator = paginator.page(page)
