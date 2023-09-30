@@ -42,20 +42,20 @@
 </tbody>
 </table>
 {% if branches.has_previous %}
-<a class="btn btn-outline-info mb-4" href="{% url 'branches' %}?page=1">First</a>
-<a class="btn btn-outline-info mb-4" href="{% url 'branches' %}?page={{ branches.previous_page_number }}">Previous</a>
+<a class="btn btn-outline-info mb-4" href="{% url 'my_branches' %}?page=1">First</a>
+<a class="btn btn-outline-info mb-4" href="{% url 'my_branches' %}?page={{ branches.previous_page_number }}">Previous</a>
 {% endif %}
 
 {% for num in branches.paginator.page_range %}
 {% if branches.number == num %}
-  <a class="btn btn-info mb-4" href="{% url 'branches' %}?page={{ num }}">{{ num }}</a>
+  <a class="btn btn-info mb-4" href="{% url 'my_branches' %}?page={{ num }}">{{ num }}</a>
 {% elif num > branches.number|add:'-3' and num < branches.number|add:'3' %}
-  <a class="btn btn-outline-info mb-4" href="{% url 'branches' %}?page={{ num }}">{{ num }}</a>
+  <a class="btn btn-outline-info mb-4" href="{% url 'my_branches' %}?page={{ num }}">{{ num }}</a>
 {% endif %}
 {% endfor %}
 
 {% if branches.has_next %}
-<a class="btn btn-outline-info mb-4" href="{% url 'branches' %}?page={{ branches.next_page_number }}">Next</a>
-<a class="btn btn-outline-info mb-4" href="{% url 'branches' %}?page={{ branches.paginator.num_pages }}">Last</a>
+<a class="btn btn-outline-info mb-4" href="{% url 'my_branches' %}?page={{ branches.next_page_number }}">Next</a>
+<a class="btn btn-outline-info mb-4" href="{% url 'my_branches' %}?page={{ branches.paginator.num_pages }}">Last</a>
 {% endif %}
 {% endblock content %}
