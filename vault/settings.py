@@ -80,23 +80,23 @@ WSGI_APPLICATION = "vault.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('yonna_vault_db_name'),
-#         'USER': os.environ.get('yonna_vault_db_username'),
-#         'PASSWORD': os.environ.get('yonna_vault_db_password'),
-#         'HOST': os.environ.get('database_host'),
-#         'PORT': '3306',
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('yonna_vault_db_name'),
+        'USER': os.environ.get('yonna_vault_db_username'),
+        'PASSWORD': os.environ.get('yonna_vault_db_password'),
+        'HOST': os.environ.get('database_host'),
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation
