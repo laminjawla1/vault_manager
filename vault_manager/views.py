@@ -378,7 +378,7 @@ class CreditSupervisorAccount(LoginRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.filter(profile__is_supervisor=True).exclude(id=self.request.user.id)
+        form.fields['agent'].queryset = User.objects.filter(profile__is_supervisor=True)
         return form
 
 class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
