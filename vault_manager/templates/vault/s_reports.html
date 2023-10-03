@@ -1,6 +1,9 @@
 {% extends "vault/layout.html" %}
 {% load humanize %}
 {% block content %}
+<div class="row">
+  <div class="col-md-12">
+
     <h1>My Reports</h1>
     <div id="supervisor-cashier-report-button">
       <a class="btn btn-primary" href="{% url 'supervisor_reporting' %}">New</a>
@@ -12,15 +15,6 @@
         <th scope="col">Opening Cash</th>
         <th scope="col">Additional Cash</th>
         <th scope="col">Closing Balance</th>
-        <th scope="col">Euro</th>
-        <th scope="col">USD</th>
-        <th scope="col">GBP</th>
-        <th scope="col">CFA</th>
-        <th scope="col">Swiss Krona</th>
-        <th scope="col">Nor Krona</th>
-        <th scope="col">Swiss Franck</th>
-        <th scope="col">Desnish Krona</th>
-        <th scope="col">Cad Dollar</th>
         <th scope="col">Date</th>
         <th scope="col">Status</th>
         </tr>
@@ -35,16 +29,6 @@
                 {% endif %}
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
                 <td>{{report.closing_balance|floatformat:2|intcomma }}</td>
-      
-                <td>{{ report.euro|floatformat:2|intcomma }}</td>
-                <td>{{ report.us_dollar|floatformat:2|intcomma }}</td>
-                <td>{{ report.gbp_pound|floatformat:2|intcomma }}</td>
-                <td>{{ report.cfa|floatformat:2|intcomma }}</td>
-                <td>{{ report.swiss_krona|floatformat:2|intcomma }}</td>
-                <td>{{ report.nor_krona|floatformat:2|intcomma }}</td>
-                <td>{{ report.swiss_franck|floatformat:2|intcomma }}</td>
-                <td>{{ report.denish_krona|floatformat:2|intcomma }}</td>
-                <td>{{ report.cad_dollar|floatformat:2|intcomma }}</td>
                 <td class="table-size">{{ report.date|date:"F d, Y" }}</td>
                 {% if report.status %}
                 <td style="color: green">Approved</td>
@@ -59,7 +43,7 @@
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page=1">First</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.previous_page_number }}">Previous</a>
     {% endif %}
-
+  
     {% for num in reports.paginator.page_range %}
       {% if reports.number == num %}
         <a class="btn btn-info mb-4" href="{% url 'reports' %}?page={{ num }}">{{ num }}</a>
@@ -67,9 +51,11 @@
         <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ num }}">{{ num }}</a>
       {% endif %}
     {% endfor %}
-
+  
     {% if reports.has_next %}
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.next_page_number }}">Next</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
     {% endif %}
+  </div>
+</div>
 {% endblock content %}

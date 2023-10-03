@@ -36,6 +36,7 @@ class Profile(models.Model):
     opening_cash = models.FloatField(null=False, default=0.0)
     additional_cash = models.FloatField(null=False, default=0.0)
     closing_balance = models.FloatField(null=False, default=0.0)
+    balance = models.FloatField(null=False, default=0.0)
 
     def __str__(self) -> str:
         return f"{self.user.username}'s profile"

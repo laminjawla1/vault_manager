@@ -40,6 +40,13 @@
                               <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
                           </form>
                       </td>
+                      <td>
+                          <form action="{% url 'disapprove_cashier_deposit' %}" method="post" enctype="multipart/form-data">
+                              {% csrf_token %}
+                              <input type="hidden" name="id" value="{{ deposit.id }}" />
+                              <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
+                          </form>
+                      </td>
                   {% endif %}
                 {% endif %}
             </tr>

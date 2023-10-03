@@ -9,6 +9,10 @@ body {
   align-items: center;
   justify-content: center;
   overflow-wrap: break-word;
+  width: 100%;
+}
+#id_comment {
+  height: 15px;
 }
 #bar-container {
   background-color:#490549;

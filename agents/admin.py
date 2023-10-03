@@ -6,7 +6,7 @@ from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 class UserProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
-    readonly_fields = ['cash', 'add_cash', 'opening_cash', 'additional_cash', 'closing_balance', 'has_return']
+    # readonly_fields = ['cash', 'add_cash', 'opening_cash', 'additional_cash', 'closing_balance', 'has_return']
 
 class AccountsUserAdmin(AuthUserAdmin):
     def add_view(self, *args, **kwargs):

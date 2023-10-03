@@ -1,23 +1,28 @@
-from .models import (MainVault, ZoneVault, Account, Withdraw, Deposit, Refund, Borrow, CurrencyTransaction, BankDeposit)
-from agents.models import Movement
-from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
-from django.core.paginator import Paginator
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
-from datetime import datetime
-from django.contrib.auth.models import User
-from agents.models import Branch, Zone
-from django.db.models import Sum
-from django.utils import timezone
-from django.views.generic import CreateView, UpdateView
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .utils import gmd
 import csv
 import os
+from datetime import datetime
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.db.models import Sum
+from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django.utils import timezone
+from django.views.generic import CreateView, UpdateView
+
+from agents.models import Branch, Movement, Zone
+
+from .forms import UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, ReturnCashierAccountForm
+from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
+                     Deposit, MainVault, Refund, Withdraw, ZoneVault)
+from .utils import gmd
+
 
 @login_required
 def index(request):
@@ -109,19 +114,32 @@ def cashier_deposits(request):
 def supervisor_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
+    if request.method == 'POST':
+        form  = CreditSupervisorAccountForm(request.POST)
+        if form.is_valid():
+            if form.instance.account.balance - form.instance.amount < 0:
+                messages.error(request, "Insufficient Fund 😥")
+                return HttpResponseRedirect('supervisor_deposits')
+        form.instance.supervisor = True
+        movement = Movement(name=request.user,
+                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
+        movement.save()
+        account = get_object_or_404(Account, id=form.instance.account.id)
+        account.balance -= form.instance.amount
+        account.save()
+        form.save()
+        messages.success(request, "Agent's account credited successfully 😊")
     
     deposits = Deposit.objects.filter(supervisor=True).all().order_by('-date')
     page = request.GET.get('page', 1)
-
-    paginator = Paginator(deposits, 8)
-
+    paginator = Paginator(deposits, 20)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
     return render(request, "vault/supervisor_deposits.html", {
-        'deposits': paginator
+        'deposits': paginator, 'form': CreditSupervisorAccountForm
     })
 
 @login_required
@@ -164,21 +182,19 @@ def vault_log(request):
 
 @login_required
 def accounts(request):
-    if not request.user.is_staff:
+    if not request.user.is_superuser:
         raise PermissionDenied()
-    
-    accounts = Account.objects.all().order_by('-date')
-    page = request.GET.get('page', 1)
-
-    paginator = Paginator(accounts, 10)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
+    if request.method == 'POST':
+        account = get_object_or_404(Account, name=request.POST.get('account'))
+        if request.POST.get('type') == 'Credit':
+            account.balance += float(request.POST.get('amount'))
+        else:
+            account.balance -= float(request.POST.get('amount'))
+        account.save()
+        messages.success(request, 'Account updated successfully')
     return render(request, "vault/vault_accounts.html", {
-        'accounts': paginator
+        'accounts': Account.objects.all().order_by('-date'),
+        'form': UpdateVaultAccountForm
     })
 
 @login_required
@@ -186,18 +202,43 @@ def withdrawals(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
+    if request.method == 'POST':
+        form = BankWithdrawalForm(request.POST)
+        if form.is_valid():
+            form.instance.withdrawer = request.user
+        movement = Movement(name=request.user, action=f"Sent a withdrawal request of amount {gmd(form.instance.amount)}.")
+        movement.save()
+        messages.success(request, "Cash withdrawal request is sent successfully")
+        form.save()
     withdrawals = Withdraw.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
-
-    paginator = Paginator(withdrawals, 10)
-
+    paginator = Paginator(withdrawals, 30)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
     return render(request, "vault/withdrawals.html", {
-        'withdrawals': paginator
+        'withdrawals': paginator, 'form': BankWithdrawalForm
+    })
+
+@login_required
+def bank_deposits(request):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    
+    deposits = BankDeposit.objects.all().order_by('-date')
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(deposits, 25)
+
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+
+    return render(request, "vault/bank_deposits.html", {
+        'bank_deposits': paginator
     })
 
 @login_required
@@ -241,18 +282,24 @@ def currency_transactions(request):
 @login_required
 def my_withdrawals(request):
     if request.user.is_staff or request.user.profile.is_supervisor:
+        if request.method == 'POST':
+            form = BankWithdrawalForm(request.POST)
+            if form.is_valid():
+                form.instance.withdrawer = request.user
+                movement = Movement(name=request.user, action=f"Sent a withdrawal request of amount {gmd(form.instance.amount)}.")
+                movement.save()
+                messages.success(request, "Cash withdrawal request is sent successfully")
+                form.save()
         withdrawals = Withdraw.objects.filter(withdrawer=request.user).all().order_by('-date')
+
         page = request.GET.get('page', 1)
-
         paginator = Paginator(withdrawals, 10)
-
         try:
             paginator = paginator.page(page)
         except:
             paginator = paginator.page(1)
-
         return render(request, "vault/my_withdrawals.html", {
-            'withdrawals': paginator
+            'withdrawals': paginator, 'form': BankWithdrawalForm
         })
     raise PermissionDenied()
 
@@ -325,61 +372,31 @@ def daily_supervisor_reports(request):
 
 @login_required
 def daily_cashier_reports(request):
+    form = ReturnCashierAccountForm(request.user.profile.zone)
+    if request.method == 'POST':
+        form = ReturnCashierAccountForm(request.user.profile.zone, request.POST)
+        if form.is_valid():
+            if form.instance.reporter.profile.has_return:
+                messages.error(request, f"You have already submitted {form.instance.reporter.username}'s report")
+                return HttpResponseRedirect(reverse("daily_cashier_reports"))
+            form.instance.branch = form.instance.reporter.profile.branch
+            form.instance.zone = form.instance.reporter.profile.zone
+            form.save()
     reports = ZoneVault.objects.all().order_by('-date')
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
             reporter__profile__zone=request.user.profile.zone
         ).all().order_by('-date')
     page = request.GET.get('page', 1)
-    paginator = Paginator(reports, 8)
+    paginator = Paginator(reports, 30)
 
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
     return render(request, "vault/cashier_reports.html", {
-        'reports': paginator
+        'reports': paginator, 'form': form
     })
-
-
-class CreditSupervisorAccount(LoginRequiredMixin, CreateView):
-    model = Deposit
-    template_name = "vault/deposit_form.html"
-    fields = ['agent', 'deposit_type', 'amount', 'account']
-
-    def form_valid(self, form):
-        if form.instance.account.balance - form.instance.amount < 0:
-            messages.error(self.request, "Insufficient Fund 😥")
-            return HttpResponseRedirect('credit_supervisor')
-        form.instance.supervisor = True
-
-        send_mail(
-            'Credit Supervisor Account',
-            f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        movement = Movement(name=self.request.user,
-                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
-        movement.save()
-        account = get_object_or_404(Account, id=form.instance.account.id)
-        account.balance -= form.instance.amount
-        account.save()
-        messages.success(self.request, "Agent's account credited successfully 😊")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.is_staff:
-            raise PermissionDenied()
-        context = super(CreditSupervisorAccount, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Credit'
-        return context
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.filter(profile__is_supervisor=True)
-        return form
 
 class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Deposit
@@ -598,6 +615,20 @@ def approve_withdrawal_request(request):
         return HttpResponseRedirect(reverse('withdrawals'))
 
 @login_required
+def approve_deposit_request(request):
+    if request.method == "POST":
+        deposit = get_object_or_404(BankDeposit, id=request.POST["id"])
+        deposit.status = True
+        deposit.account.balance -= deposit.amount
+        deposit.save()
+        deposit.account.save()
+        movement = Movement(name=request.user, action=f"Approved {deposit.depositor.username}'s \
+                            deposit request of {gmd(deposit.amount)}")
+        movement.save()
+        messages.success(request, "Deposit Accepted")
+        return HttpResponseRedirect(reverse('bank_deposits'))
+
+@login_required
 def approve_borrow_request(request):
     if request.method == "POST":
         borrow = get_object_or_404(Borrow, id=request.POST["id"])
@@ -623,6 +654,17 @@ def disapprove_withdrawal_request(request):
         return HttpResponseRedirect(reverse('withdrawals'))
 
 @login_required
+def disapprove_cashier_deposit(request):
+    if request.method == "POST":
+        deposit = get_object_or_404(Deposit, id=request.POST["id"])
+        deposit.delete()
+        movement = Movement(name=request.user, action=f"Disapproved {deposit.agent.username}'s \
+                             deposit request of {gmd(deposit.amount)}")
+        movement.save()
+        messages.success(request, "Deposit Rejected 😔")
+        return HttpResponseRedirect(reverse('cashier_deposits'))
+
+@login_required
 def disapprove_borrow_request(request):
     if request.method == "POST":
         borrow = get_object_or_404(Borrow, id=request.POST["id"])
@@ -646,20 +688,12 @@ class RefundAgent(LoginRequiredMixin, CreateView):
         elif form.instance.refund_type == "Add to Additional Cash":
             form.instance.agent.profile.add_cash += form.instance.amount
             form.instance.agent.profile.additional_cash += form.instance.amount
-        elif form.instance.refund_type == "Deduct from Opening Cash":
-            if form.instance.agent.profile.opening_cash - form.instance.amount >= 0:
+        elif form.instance.refund_type == 'Deduct from Opening Cash':
                 form.instance.agent.profile.cash -= form.instance.amount
                 form.instance.agent.profile.opening_cash -= form.instance.amount
-            else:
-                messages.error(self.request, "The amount is not available in the agents account")
-                return HttpResponseRedirect("refund")
         else:
-            if form.instance.agent.profile.additional_cash - form.instance.amount >= 0:
                 form.instance.agent.profile.add_cash -= form.instance.amount
                 form.instance.agent.profile.additional_cash -= form.instance.amount
-            else:
-                messages.error(self.request, "The amount is not available in the agents account")
-                return HttpResponseRedirect("refund")
         messages.success(self.request, "Agent's account refunded successfully")
         movement = Movement(name=self.request.user, action=f"Refunded {form.instance.agent.username}'s account with a refund type of \
                             {form.instance.refund_type} of amount {gmd(form.instance.amount)}.")
@@ -676,37 +710,11 @@ class RefundAgent(LoginRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.all().exclude(is_staff=True)
+        form.fields['agent'].queryset = User.objects.all().exclude(
+                                        is_staff=True,
+                                        profile__is_supervisor=False
+                                        ).order_by('username')
         return form
-
-
-class WithdrawCash(LoginRequiredMixin, CreateView):
-    model = Withdraw
-    template_name = "vault/withdraw_form.html"
-    fields = ['bank', 'cheque_number', 'amount', 'account', 'image', 'comment']
-
-    def form_valid(self, form):
-        form.instance.withdrawer = self.request.user
-        movement = Movement(name=self.request.user, action=f"Sent a withdrawal request of amount {gmd(form.instance.amount)}.")
-        movement.save()
-
-        send_mail(
-            'Cash Withdrawal Request',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent a withdrawal request of {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "Cash withdrawal request is sent successfully")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(WithdrawCash, self).get_context_data(*args, **kwargs)
-            context['button'] = 'Withdraw'
-            context['legend'] = 'Withdraw Cash'
-            return context
-        raise PermissionDenied()
 
 class DepositCash(LoginRequiredMixin, CreateView):
     model = BankDeposit
@@ -725,12 +733,12 @@ class DepositCash(LoginRequiredMixin, CreateView):
             [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
             fail_silently=False,
         )
-        messages.success(self.request, "Cash withdrawal request is sent successfully")
+        messages.success(self.request, "Cash deposit request is sent successfully")
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
         if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(WithdrawCash, self).get_context_data(*args, **kwargs)
+            context = super(DepositCash, self).get_context_data(*args, **kwargs)
             context['button'] = 'Withdraw'
             context['legend'] = 'Withdraw Cash'
             return context
@@ -846,8 +854,6 @@ class SupervisorReporting(LoginRequiredMixin, CreateView):
         context = super(SupervisorReporting, self).get_context_data(*args, **kwargs)
         context['button'] = 'Send'
         return context
-    
-
 
 class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = MainVault
@@ -877,9 +883,6 @@ class CashierReporting(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
     fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
-    # fields = ['location', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-    #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
-
     def form_valid(self, form):
         if self.request.user.profile.has_return:
             messages.error(self.request, "You have already submitted your report")
@@ -909,9 +912,6 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
     fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
-    # fields = ['location', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance', 'euro', 'us_dollar', 'gbp_pound', 
-    #           'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
-
     def form_valid(self, form):
         if form.instance.reporter.profile.has_return:
             messages.error(self.request, f"You have already submitted {form.instance.reporter.username}'s report")
@@ -930,8 +930,6 @@ class ReturnCashierAccount(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
-        # if (not self.request.user.profile.is_supervisor) and (not self.request.user.is_staff):
-        #     raise PermissionDenied()
         context = super(ReturnCashierAccount, self).get_context_data(*args, **kwargs)
         context['button'] = 'Send'
         return context
