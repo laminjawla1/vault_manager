@@ -1,13 +1,53 @@
+* {
+  box-sizing: border-box;
+}
 body {
-  padding-top: 63px;
+  padding-top: 70px;
   background: #b989ad;
   color: #333333;
   font-family: 'Poppins', sans-sherif;
   align-items: center;
   justify-content: center;
   overflow-wrap: break-word;
+  width: 100%;
 }
-
+#id_comment {
+  height: 15px;
+}
+#bar-container {
+  background-color:#490549;
+  text-align: center;
+}
+#side-bar-container {
+  background-color:#490549;
+}
+.current-date, .username, #top-bar, .cat {
+  color: #fff;
+}
+.username {
+  font-size: medium;
+}
+.current-date {
+  font-size: small;
+  /* padding-bottom: 5px; */
+  margin-top: -20px;
+}
+#top-bar {
+  background-color:#490549;
+  color: #fff;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: 25px
+  /* margin-left: 10px; */
+}
+#cashier-report {
+  margin-left: 10px;
+}
+#category1Items {
+  list-style: none;
+}
+#supervisor-cashier-report-button {
+  margin-bottom: 5px;
+}
 h1, h2, h3, h4, h5, h6 {
   color: #914790;;
 }
@@ -17,7 +57,7 @@ ul {
 }
 
 .bg-steel {
-  background-color:#490549
+  background-color:#600060
 }
 
 .site-header .navbar-nav .nav-link {
@@ -80,6 +120,10 @@ a.article-title:hover {
 
 .account-heading {
   font-size: 2.5rem;
+}
+
+a[type="branches_under"]{
+  color:#850e65
 }
 
 .material-icons-outlined {
@@ -157,7 +201,9 @@ a.article-title:hover {
 .card:nth-child(4) {
   background-color: #d50000;
 }
-
+.row {
+  width: 100%;
+}
 .card-inner {
   display: flex;
   align-items: center;
