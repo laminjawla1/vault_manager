@@ -35,7 +35,7 @@
                     <td style="color: red">Pending</td>
                 {% endif %}
                 <td>{{ borrow.date|date:"F d, Y" }}</td>
-                {% if not user.profile.is_supervisor %}
+                {% if not user.profile.is_staff %}
                     {% if not borrow.status %}
                         <td>
                             <form action="{% url 'approve_borrow_request' %}" method="post" enctype="multipart/form-data">

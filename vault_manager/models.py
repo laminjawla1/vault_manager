@@ -166,7 +166,7 @@ class Borrow(models.Model):
         return f"{self.borrower}"
     
     def get_absolute_url(self):
-        if self.borrower.profile.is_supervisor:
+        if self.borrower.profile.is_supervisor and not self.borrower.is_staff:
             return reverse('my_borrows')
         return reverse('borrows')
 
