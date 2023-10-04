@@ -53,22 +53,9 @@ class ZoneVault(models.Model):
         verbose_name_plural = "Zone Vault"
     cashier_name = models.CharField(max_length=50)
     date = models.DateTimeField(null=False, default=timezone.now)
-    opening_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
-    additional_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
-
-    # Currencies
-    euro = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    us_dollar = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    gbp_pound = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    swiss_krona = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    nor_krona = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    swiss_franck = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    cfa = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    denish_krona = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-    cad_dollar = models.IntegerField(blank=True, null=True, default=0, validators=[MinValueValidator(0), MaxValueValidator(10000)])
-
-    # closing
-    closing_balance = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
+    opening_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
+    additional_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
+    closing_balance = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
     status = models.BooleanField(default=False)
 
     reporter = models.ForeignKey(User, on_delete=models.CASCADE)

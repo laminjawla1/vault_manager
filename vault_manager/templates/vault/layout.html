@@ -82,11 +82,13 @@
                                     <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                         aria-expanded="false">Operation</a>
                                         <ul class="dropdown-menu">
-                                            <li><a class="dropdown-item" href="{% url 'my_branches' %}">Branches</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'reports' %}">Reports</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'my_withdrawals' %}">Withdrawals</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'my_borrows' %}">Borrows</a></li>
-                                            <li><a class="dropdown-item" href="{% url 'my_deposits' %}">Deposits</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_branches' %}">My Branches</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'reports' %}">My Reports</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_withdrawals' %}">My Withdrawals</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_borrows' %}">My Loans</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'my_deposits' %}">My Deposits</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'withdrawals' %}">All Withdrawals</a></li>
+                                            <li><a class="dropdown-item" href="{% url 'borrows' %}">All Loans</a></li>
                                         </ul>
                                     </li>
                                 {% else %}
@@ -98,7 +100,6 @@
                                 {% endif %}
                             {% endif %}
                             {% if user.profile.is_cashier %}
-                                <li><a class="nav-item nav-link" href="{% url 'cashier_reporting' %}">Send Report</a></li>
                                 <li><a class="nav-item nav-link" href="{% url 'reports' %}">My Reports</a></li>
                                 {% endif %}
                             {% if user.profile.is_supervisor or user.profile.is_cashier %}

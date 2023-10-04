@@ -18,7 +18,8 @@ from django.views.generic import CreateView, UpdateView
 
 from agents.models import Branch, Movement, Zone
 
-from .forms import UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, ReturnCashierAccountForm
+from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
+                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
 from .utils import gmd
@@ -130,7 +131,7 @@ def supervisor_deposits(request):
         form.save()
         messages.success(request, "Agent's account credited successfully 😊")
     
-    deposits = Deposit.objects.filter(supervisor=True).all().order_by('-date')
+    deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 20)
     try:
@@ -210,6 +211,7 @@ def withdrawals(request):
         movement.save()
         messages.success(request, "Cash withdrawal request is sent successfully")
         form.save()
+        return HttpResponseRedirect(reverse("withdrawals"))
     withdrawals = Withdraw.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(withdrawals, 30)
@@ -227,6 +229,10 @@ def bank_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
+    if request.method == "POST":
+        form = BankDepositsForm(request.POST)
+        if form.is_valid():
+            ...
     deposits = BankDeposit.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
 
@@ -238,7 +244,7 @@ def bank_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/bank_deposits.html", {
-        'bank_deposits': paginator
+        'bank_deposits': paginator, 'form': BankDepositsForm
     })
 
 @login_required
@@ -290,10 +296,11 @@ def my_withdrawals(request):
                 movement.save()
                 messages.success(request, "Cash withdrawal request is sent successfully")
                 form.save()
+                return HttpResponseRedirect(reverse("my_withdrawals"))
         withdrawals = Withdraw.objects.filter(withdrawer=request.user).all().order_by('-date')
 
         page = request.GET.get('page', 1)
-        paginator = Paginator(withdrawals, 10)
+        paginator = Paginator(withdrawals, 30)
         try:
             paginator = paginator.page(page)
         except:
@@ -327,7 +334,7 @@ def reports(request):
     if request.user.profile.is_supervisor:
         reports = MainVault.objects.filter(reporter=request.user).all().order_by('-date')
         page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 8)
+        paginator = Paginator(reports, 30)
 
         try:
             paginator = paginator.page(page)
@@ -337,16 +344,28 @@ def reports(request):
             'reports': paginator
         })
     elif request.user.profile.is_cashier:
+        if request.method == 'POST':
+            form = CashierReportingForm(request.POST)
+            if form.is_valid():
+                if request.user.profile.has_return:
+                    messages.error(request, "You have already submitted your report")
+                    return HttpResponseRedirect(reverse("reports"))
+                form.instance.reporter = request.user
+                form.instance.branch = request.user.profile.branch
+                form.instance.zone = request.user.profile.zone
+                form.save()
+                messages.success(request, "Your daily report have been submitted successfully")
+                return HttpResponseRedirect(reverse("reports"))
         reports = ZoneVault.objects.filter(reporter=request.user).all().order_by('-date')
         page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 8)
+        paginator = Paginator(reports, 30)
 
         try:
             paginator = paginator.page(page)
         except:
             paginator = paginator.page(1)
         return render(request, "vault/c_reports.html", {
-            'reports': paginator
+            'reports': paginator, 'form': CashierReportingForm
         })
     elif request.user.is_staff:
         return HttpResponseRedirect(reverse('daily_cashier_reports'))
@@ -605,7 +624,15 @@ def approve_withdrawal_request(request):
     if request.method == "POST":
         withdrawal = get_object_or_404(Withdraw, id=request.POST["id"])
         withdrawal.status = True
-        withdrawal.account.balance += withdrawal.amount
+        if withdrawal.withdrawer.profile.is_supervisor:
+            if not withdrawal.withdrawer.is_staff:
+                withdrawal.withdrawer.profile.add_cash += withdrawal.amount
+                withdrawal.withdrawer.profile.additional_cash += withdrawal.amount
+                withdrawal.withdrawer.profile.save()
+            else:
+                withdrawal.account.balance += withdrawal.amount
+        else:
+            withdrawal.account.balance += withdrawal.amount
         withdrawal.save()
         withdrawal.account.save()
         movement = Movement(name=request.user, action=f"Approved {withdrawal.withdrawer.username}'s \

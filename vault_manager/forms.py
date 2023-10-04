@@ -1,5 +1,5 @@
 from django import forms
-from vault_manager.models import Account, Deposit, Bank, Withdraw, ZoneVault
+from vault_manager.models import Account, Deposit, Bank, Withdraw, ZoneVault, BankDeposit
 from django.contrib.auth.models import User
 
 account_choices = [(account.name, account.name) for account in Account.objects.all()]
@@ -36,3 +36,13 @@ class ReturnCashierAccountForm(forms.ModelForm):
     class Meta:
         model = ZoneVault
         fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+
+class CashierReportingForm(forms.ModelForm):
+    class Meta:
+        model = ZoneVault
+        fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
+
+class BankDepositsForm(forms.ModelForm):
+    class Meta:
+        model = BankDeposit
+        fields = ['bank', 'amount', 'account', 'comment']

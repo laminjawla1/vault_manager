@@ -99,16 +99,11 @@ class MainVaultAdmin(admin.ModelAdmin):
     sortable_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
     filter_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
     list_filter = ['zone__name', 'date']
-    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date', 'euro', 'us_dollar', 
-                       'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date']
     fieldsets = (
         ('Meta Information', {
             'classes': ('collapse',),
             'fields': ('reporter', 'zone', 'date')
-        }),
-        ('Currencies', {
-            'classes': ('collapse',),
-            'fields': ('euro', 'us_dollar', 'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar')
         }),
         ('Vault Admin', {
             'classes': ('collapse',),
@@ -125,16 +120,11 @@ class ZoneVaultAdmin(admin.ModelAdmin):
                     'closing_balance', 'date']
     filter_by = ['cashier_name','zone__name', 'branch__name', 'location__name', 'date']
     list_filter = ['zone__name', 'branch__name', 'date']
-    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date', 'euro', 'us_dollar', 
-                       'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar']
+    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date']
     fieldsets = (
         ('Meta Information', {
             'classes': ('collapse',),
             'fields': ('reporter', 'zone', 'branch', 'location', 'date')
-        }),
-        ('Currencies', {
-            'classes': ('collapse',),
-            'fields': ('euro', 'us_dollar', 'gbp_pound', 'swiss_krona', 'nor_krona', 'swiss_franck', 'cfa', 'denish_krona', 'cad_dollar')
         }),
         ('Vault Admin', {
             'classes': ('collapse',),
