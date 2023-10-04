@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="{% static 'vault/css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+
     <!-- Montserrat Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -54,12 +56,12 @@
             </div>
         </div>
     </div>
-    <!-- <div class="row mt-1">
+    
+    <div class="row mt-1 d-flex justify-content-between col-auto min-vh-100">
         <div class="col-md-2" id="side-bar-container">
             <div class="navbar cat">
                 <div class="category" onclick="toggleItems('category1')">
                     Deposits
-                    <span class="material-icons-outlined pl-5">add</span>
                 </div>
                 <ul id="category1Items" class="hidden">
                     <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Bank Deposits</a></li>
@@ -70,7 +72,6 @@
 
                 <div class="category" onclick="toggleItems('category2')">
                     Reports
-                    <span class="material-icons-outlined pl-5">add</span>
                 </div>
                 <ul id="category2Items" class="hidden">
                     <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Bank Deposits</a></li>
@@ -83,16 +84,8 @@
         <div class="col-md-10">
 
         </div>
-    </div> -->
-    <div class="container-fluid">
-        <div class="row">
-            <div class="d-flex flex-column justify-content-between col-auto bg-dark min-vh-100">
-                <a class="text-white text-decoration-none d-flex align-items-center ms-4" role="button">
-                    <span class="fs-5">Yonna</span>
-                </a>
-            </div>
-        </div>
     </div>
+
     <header class="site-header col-md-12">
         <nav class="navbar navbar-expand-md navbar-dark bg-steel fixed-top">
             <div class="container">

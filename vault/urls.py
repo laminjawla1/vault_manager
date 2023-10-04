@@ -29,6 +29,7 @@ urlpatterns = [
     path("my_deposits/", agent_views.my_deposits, name="my_deposits"),
     path("profile/", agent_views.profile, name="profile"),
     path("zones/", agent_views.zones, name="zones"),
+    path("all_agents/", agent_views.all_agents, name="all_agents"),
     path("branches/", agent_views.branches, name="branches"),
     path("vault/", include("vault_manager.urls")),
 

@@ -1,35 +1,37 @@
 {% extends "vault/layout.html" %}
 {% load crispy_forms_tags %}
 {% block content %}
-<style>
-    body {
-        background-color: rgb(65, 3, 61);
-        color: whitesmoke;
-    }
-    
-    div[id="div_id_username"], div [id="div_id_password"]{
-        margin-bottom: 15px;
-    }  
-
-    form {
-        padding-top: 15%;
-        padding-bottom: 30%;
-        width: 25%;
-    }
-</style>
-    <div class="media container d-flex justify-content-center align-items-center">
-        <form class="login-form" autocomplete="off" method="POST">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Log In</legend>
-                {{ form|crispy }}
-            </fieldset>
-            <div class="form-group text-center">
-                <button class="btn btn-outline-info" type="submit">Login</button>
-                <small class="text-muted ml-2">
-                    <a href="{% url 'password_reset' %}">Forgot Password</a>
-                </small>
-            </div>
-        </form>
+<div class="row">
+    <div class="col-md-4 login-form mx-auto text-white">
+        <div class="justify-content-center align-items-center">
+            <form autocomplete="off" method="POST">
+                {% csrf_token %}
+                <fieldset class="form-group">
+                    {% for error in form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{error}}
+                        </div>
+                    {% endfor %}
+                    <legend class="border-bottom mb-4 text-center">Log In</legend>
+                    <div class="form-row mb-3">
+                        <div class="form-group col-md-12">
+                          {{ form.username|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-row mb-3">
+                        <div class="form-group col-md-12">
+                          {{ form.password|as_crispy_field }}
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-group text-center">
+                    <button class="btn btn-outline-info" type="submit">Login</button>
+                    <small class="text-muted ml-2">
+                        <a href="{% url 'password_reset' %}">Forgot Password</a>
+                    </small>
+                </div>
+              </form>
+        </div>
     </div>
+</div>
 {% endblock content %}

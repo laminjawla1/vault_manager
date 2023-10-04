@@ -14,6 +14,8 @@ from .models import Branch, Zone
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from vault_manager.utils import gmd
+from django.contrib.auth.models import User
+from django.db.models import Q
 
 
 @login_required
@@ -36,6 +38,26 @@ def profile(request):
     return render(request, 'agents/profile.html', {
         'user_form': user_form,
         'profile_form': profile_form
+    })
+
+
+@login_required
+def all_agents(request):
+    if not request.user.is_staff:
+        raise PermissionDenied()
+    
+    agents = User.objects.filter(
+        Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
+    ).order_by('username')
+    page = request.GET.get('page', 1)
+    paginator = Paginator(agents, 50)
+    try:
+        paginator = paginator.page(page)
+    except:
+        paginator = paginator.page(1)
+
+    return render(request, "agents/all_agents.html", {
+        'agents': paginator
     })
 
 

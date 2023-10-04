@@ -12,6 +12,7 @@
     <script src="{% static 'vault/js/bootstrap.min1.js' %}"></script>
     <link rel="stylesheet" href="{% static 'vault/css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
     <!-- Montserrat Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -54,6 +55,7 @@
                                 <li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                         aria-expanded="false">Agents</a>
                                     <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'all_agents' %}">All</a></li>
                                         <li><a class="dropdown-item" href="{% url 'zones' %}">Zones</a></li>
                                         <li><a class="dropdown-item" href="{% url 'branches' %}">Branches</a></li>
                                     </ul>
