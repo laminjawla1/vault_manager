@@ -96,7 +96,7 @@ def cashier_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
-    deposits = Deposit.objects.filter(cashier=True).all().order_by('-date', 'status')
+    deposits = Deposit.objects.filter(cashier=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
 
     paginator = Paginator(deposits, 20)
