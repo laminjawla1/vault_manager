@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Montserrat Font -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -42,7 +43,7 @@
         </div>
         <div class="col-md-8 p-2 mb-0">
             <!-- <p id="top-bar">YONNA VAULT</p> -->
-            <p class="username">{{ user.first_name }} {{ user.last_name }}</p>
+            <p class="username fw-bold">{{ user.first_name }} {{ user.last_name }}</p>
             <p class="current-date">{{ current_date }}</p>
         </div>
         <div class="col-md-2 mb-0">
@@ -58,124 +59,173 @@
     </div>
     
     <div class="row col-auto min-vh-100" id="side-bar">
-        <div class="col-md-2" id="side-bar-container">
-            <div class="navbar text-white">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="category" onclick="toggleItems('category1')">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <i class="fa fa-lock mr-3"></i>
-                                    Admin
-                                </div>
-                                <div class="col-md-4">
-                                    <span class="material-icons-outlined">add</span>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <ul id="category1Items" class="hidden">
-                            <li><a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'admin:index' %}">Administration</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'currency_transactions' %}">Currencies</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'borrows' %}">Loans</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'vault_log' %}">Ledger</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="category" onclick="toggleItems('category2')">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <i class="fas fa-users mr-2"></i>
-                                    Agents
-                                </div>
-                                <div class="col-md-4">
-                                    <span class="material-icons-outlined">add</span>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <ul id="category2Items" class="hidden">
-                            <li><a class="nav-item nav-link" href="{% url 'all_agents' %}">All</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'zones' %}">Zones</a></li>
-                            <li><a class="nav-item nav-link" href="{% url 'branches' %}">Branches</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="category" onclick="toggleItems('category3')">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <i class="fab fa-bitcoin mr-2"></i>
-                                    Deposits
-                                </div>
-                                <div class="col-md-4">
-                                    <span class="material-icons-outlined">add</span>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <ul id="category3Items" class="hidden">
-                            <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Bank Deposits</a></li>
-                            <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Cashier Deposits</a></li>
-                            <li><a class="nav-link" href="{% url 'supervisor_deposits' %}">Supervisor Deposits</a></li>
-                            <li><a class="nav-link" href="{% url 'refunds' %}">Refunds</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="category" onclick="toggleItems('category4')">
-                            <div class="row">
-                                <div class="col-md-8">
-                                    <i class="fas fa-folder-open mr-2"></i>
-                                    Reports
-                                </div>
-                                <div class="col-md-4">
-                                    <span class="material-icons-outlined">add</span>
-                                </div>
-                            </div>
-                            
-                        </div>
-                        <ul id="category4Items" class="hidden">
-                            <li><a class="nav-link" href="{% url 'daily_supervisor_reports' %}">Daily Supervisors Reports</a></li>
-                            <li><a class="nav-link" href="{% url 'daily_cashier_reports' %}">Daily Cashiers Reports</a></li>
-                        </ul>
-                    </div>
-                    {% if user.profile.is_supervisor %}
+        {% if user.is_staff %}
+            <div class="col-md-2" id="side-bar-container">
+                <div class="navbar text-white">
+                    <div class="row">
                         <div class="col-md-12">
-                            <div class="category" onclick="toggleItems('category5')">
+                            <div class="category" onclick="toggleItems('category1')">
                                 <div class="row">
                                     <div class="col-md-8">
-                                        <i class="fas fa-chart-pie mr-2"></i>
-                                        Operation
+                                        <i class="fa fa-lock mr-3"></i>
+                                        Admin
                                     </div>
                                     <div class="col-md-4">
                                         <span class="material-icons-outlined">add</span>
                                     </div>
                                 </div>
+                                
                             </div>
-                            <ul id="category5Items" class="hidden">
-                                <li><a class="nav-link" href="{% url 'my_branches' %}">Branches</a></li>
-                                <li><a class="nav-link" href="{% url 'my_deposits' %}">Deposits</a></li>
-                                <li><a class="nav-link" href="{% url 'reports' %}">Reports</a></li>
+                            <ul id="category1Items" class="hidden">
+                                <li><a class="nav-item nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'accounts' %}">Accounts</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'admin:index' %}">Administration</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'currency_transactions' %}">Currencies</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'borrows' %}">Loans</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'vault_log' %}">Ledger</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'withdrawals' %}">Withdrawals</a></li>
                             </ul>
                         </div>
                         <div class="col-md-12">
-                            {% if user.profile.balance > 50000 %}
-                                <a class="nav-item nav-link">
-                                    <i class="fas fa-dollar-sign"></i>
-                                    <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
-                                </a>
-                            {% else %}
-                                <a class="nav-item nav-link">
-                                    <i class="fas fa-dollar-sign"></i>
-                                    <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
-                                </a>
-                            {% endif %}
+                            <div class="category" onclick="toggleItems('category2')">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <i class="fas fa-users mr-2"></i>
+                                        Agents
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="material-icons-outlined">add</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <ul id="category2Items" class="hidden">
+                                <li><a class="nav-item nav-link" href="{% url 'all_agents' %}">All</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'zones' %}">Zones</a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'branches' %}">Branches</a></li>
+                            </ul>
                         </div>
-                    {% endif %}
+                        <div class="col-md-12">
+                            <div class="category" onclick="toggleItems('category3')">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <i class="fab fa-bitcoin mr-2"></i>
+                                        Deposits
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="material-icons-outlined">add</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <ul id="category3Items" class="hidden">
+                                <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Bank Deposits</a></li>
+                                <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Cashier Deposits</a></li>
+                                <li><a class="nav-link" href="{% url 'supervisor_deposits' %}">Supervisor Deposits</a></li>
+                                <li><a class="nav-link" href="{% url 'refunds' %}">Refunds</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="category" onclick="toggleItems('category4')">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <i class="fas fa-folder-open mr-2"></i>
+                                        Reports
+                                    </div>
+                                    <div class="col-md-4">
+                                        <span class="material-icons-outlined">add</span>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                            <ul id="category4Items" class="hidden">
+                                <li><a class="nav-link" href="{% url 'daily_supervisor_reports' %}">Daily Supervisors Reports</a></li>
+                                <li><a class="nav-link" href="{% url 'daily_cashier_reports' %}">Daily Cashiers Reports</a></li>
+                            </ul>
+                        </div>
+                        {% if user.profile.is_supervisor %}
+                            <div class="col-md-12">
+                                <div class="category" onclick="toggleItems('category5')">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <i class="fas fa-chart-pie mr-2"></i>
+                                            Operation
+                                        </div>
+                                        <div class="col-md-4">
+                                            <span class="material-icons-outlined">add</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <ul id="category5Items" class="hidden">
+                                    <li><a class="nav-link" href="{% url 'my_branches' %}">Branches</a></li>
+                                    <li><a class="nav-link" href="{% url 'my_deposits' %}">Deposits</a></li>
+                                    <li><a class="nav-link" href="{% url 'reports' %}">Reports</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-12">
+                                {% if user.profile.balance > 50000 %}
+                                    <a class="nav-item nav-link">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                    </a>
+                                {% else %}
+                                    <a class="nav-item nav-link">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
+            {% else %}
+                <div class="col-md-2" id="side-bar-container">
+                    <div class="navbar text-white">
+                        <div class="row">
+                            <ul class="list-unstyled">
+                                <li><a class="nav-item nav-link" href="{% url 'my_branches' %}">
+                                    <i class="fa fa-users"></i>
+                                    Branches
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'daily_cashier_reports' %}">
+                                    <i class="fa fa-calendar-check-o"></i>
+                                    Cashier Reports
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'dashboard' %}">
+                                    <i class="fa fa-dashboard"></i>
+                                    Dashboard
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'my_deposits' %}">
+                                    <i class="fas fa-donate"></i>
+                                    Deposits
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'my_borrows' %}">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                    Loans
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'reports' %}">
+                                    <i class="fa fa-clipboard"></i>
+                                    My Reports
+                                </a></li>
+                                <li><a class="nav-item nav-link" href="{% url 'my_withdrawals' %}">
+                                    <i class="fab fa-bitcoin"></i>
+                                    Withdrawals
+                                </a></li>
+                                {% if user.profile.balance > 50000 %}
+                                    <a class="nav-item nav-link">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                    </a>
+                                {% else %}
+                                    <a class="nav-item nav-link">
+                                        <i class="fas fa-dollar-sign"></i>
+                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                    </a>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+        {% endif %}
         </div>
         <div class="col-md-10">
             <div class="row">

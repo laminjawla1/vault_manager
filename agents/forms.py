@@ -37,4 +37,4 @@ class ReturnCashierAccountForm(forms.ModelForm):
                                             ).order_by("name")
     class Meta:
         model = ZoneVault
-        fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+        fields = ['cashier_name', 'reporter', 'closing_balance']

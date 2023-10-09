@@ -16,6 +16,7 @@ from django.urls import reverse
 from vault_manager.utils import gmd
 from django.contrib.auth.models import User
 from django.db.models import Q
+from datetime import datetime
 
 
 @login_required
@@ -131,7 +132,7 @@ def my_branches(request):
     
     branches = Branch.objects.filter(teller__profile__zone=request.user.profile.zone).order_by('name')
     page = request.GET.get('page', 1)
-    paginator = Paginator(branches, 8)
+    paginator = Paginator(branches, 25)
 
     try:
         paginator = paginator.page(page)
@@ -140,7 +141,7 @@ def my_branches(request):
 
     return render(request, "agents/my_branches.html", {
         'branches': paginator, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs,
-        'ReturnCashierAccountForm': ReturnCashierAccountForm
+        'ReturnCashierAccountForm': ReturnCashierAccountForm, 'current_date': datetime.now()
     })
 
 @login_required
@@ -170,34 +171,16 @@ def my_deposits(request):
         form = CreditMyCashierForm(request.user.profile.zone, request.POST)
         if form.is_valid():
             form.instance.account = Account.objects.filter(name="Main Vault").first()
-            if form.instance.deposit_type == "Opening Cash":
-                if request.user.profile.opening_cash - form.instance.amount < 0:
-                    if request.user.profile.additional_cash - form.instance.amount >= 0:
-                        request.user.profile.opening_cash -= form.instance.amount
-                        request.user.profile.save()
-                    else:
-                        messages.error(request, "Insufficient Fund 😥")
-                        return HttpResponseRedirect(reverse('my_deposits'))
-                else:
-                    request.user.profile.opening_cash -= form.instance.amount
-                    request.user.profile.save()
+            if request.user.profile.balance - form.instance.amount > 0:
+                request.user.profile.balance -= form.instance.amount
+                request.user.profile.save()
             else:
-                if request.user.profile.additional_cash - form.instance.amount < 0:
-                    if request.user.profile.opening_cash - form.instance.amount >= 0:
-                        request.user.profile.opening_cash -= form.instance.amount
-                        request.user.profile.save()
-                    else:
-                        messages.error(request, "Insufficient Fund 😥")
-                        return HttpResponseRedirect(reverse('my_deposits'))
-                else:
-                    request.user.profile.additional_cash -= form.instance.amount
-                    request.user.profile.save()
-                    
+                messages.error(request, "Insufficient Fund 😥")
+                return HttpResponseRedirect(reverse('my_deposits'))
             form.instance.cashier = True
             movement = Movement(name=request.user,
                                 action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
             movement.save()
-            request.user.profile.save()
             messages.success(request, "Agent's account credited successfully 😊")
             form.save()
     

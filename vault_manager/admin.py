@@ -94,12 +94,12 @@ generate_supervisor_deposit_report.short_description = 'Export Supervisor Deposi
 generate_withdrawal_report.short_description = 'Export Withdrawal Report as csv'
 
 class MainVaultAdmin(admin.ModelAdmin):
-    list_display = ['reporter', 'zone', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    search_fields = ['reporter__username', 'zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    sortable_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    filter_by = ['reporter__username','zone__name', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
+    list_display = ['reporter', 'zone', 'closing_balance', 'date']
+    search_fields = ['reporter__username', 'zone__name', 'closing_balance', 'date']
+    sortable_by = ['reporter__username','zone__name', 'closing_balance', 'date']
+    filter_by = ['reporter__username','zone__name', 'closing_balance', 'date']
     list_filter = ['zone__name', 'date']
-    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date']
+    readonly_fields = ['closing_balance', 'date']
     fieldsets = (
         ('Meta Information', {
             'classes': ('collapse',),
@@ -107,20 +107,19 @@ class MainVaultAdmin(admin.ModelAdmin):
         }),
         ('Vault Admin', {
             'classes': ('collapse',),
-            'fields': ('opening_cash', 'additional_cash', 'closing_balance', 'status')
+            'fields': ('closing_balance', 'status')
         }),
     )
     actions = [generate_supervisor_report]
 
 class ZoneVaultAdmin(admin.ModelAdmin):
-    list_display = ['cashier_name','zone', 'branch', 'opening_cash', 'additional_cash', 'closing_balance', 'date']
-    search_fields = ['cashier_name','zone__name', 'branch__name', 'opening_cash',
-                      'additional_cash', 'closing_balance', 'date']
+    list_display = ['cashier_name','zone', 'branch', 'closing_balance', 'date']
+    search_fields = ['cashier_name','zone__name', 'branch__name', 'closing_balance', 'date']
     sortable_by = ['cashier_name','zone__name', 'branch__name', 'opening_cash', 'additional_cash',
                     'closing_balance', 'date']
     filter_by = ['cashier_name','zone__name', 'branch__name', 'location__name', 'date']
     list_filter = ['zone__name', 'branch__name', 'date']
-    readonly_fields = ['opening_cash', 'additional_cash', 'closing_balance', 'date']
+    readonly_fields = ['closing_balance', 'date']
     fieldsets = (
         ('Meta Information', {
             'classes': ('collapse',),
@@ -128,7 +127,7 @@ class ZoneVaultAdmin(admin.ModelAdmin):
         }),
         ('Vault Admin', {
             'classes': ('collapse',),
-            'fields': ('opening_cash', 'additional_cash', 'closing_balance', 'status')
+            'fields': ('closing_balance', 'status')
         }),
     )
     actions = [generate_cashier_report]

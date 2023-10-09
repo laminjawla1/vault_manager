@@ -1,13 +1,12 @@
-{% extends "vault/layout.html" %}
+{% extends "vault/admin/admin_layout.html" %}
 {% load humanize %}
+{% load crispy_forms_tags %}
 {% block content %}
 <div class="row">
   <div class="col-md-12">
-
-    <h1>My Reports</h1>
+    <h1 class="text-center text-white fw-bold">My Reports</h1>
     <div id="supervisor-cashier-report-button">
-      <a class="btn btn-primary" href="{% url 'supervisor_reporting' %}">New</a>
-      <a id="cashier-report" class="btn btn-secondary" href="{% url 'daily_cashier_reports' %}">Cashier Reports</a>
+      <small><a class="btn btn-danger btn-block btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Send New Reports</a></small>
     </div>
     <table class="table table-striped table-bordered">
     <thead class="thead-dark">
@@ -56,6 +55,29 @@
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.next_page_number }}">Next</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
     {% endif %}
+  </div>
+</div>
+
+<div class="modal fade" id="vaultAccountModal" tabindex="-1" aria-labelledby="vaultAccountModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Sending New Report...</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body content-section">
+        <form method="POST">
+          {% csrf_token %}
+          <fieldset class="form-group">
+              {{ form|crispy }}
+          </fieldset>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Send</button>
+          </div>
+      </form>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock content %}

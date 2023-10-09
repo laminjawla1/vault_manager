@@ -1,8 +1,8 @@
-{% extends "vault/layout.html" %}
+{% extends "vault/admin/admin_layout.html" %}
 {% load humanize %}
 {% block content %}
 {% load crispy_forms_tags %}
-    <h1>Daily Cashier Reports</h1>
+    <h1 class="text-white text-center fw-bold">Daily Cashier Reports</h1>
     {% if user.profile.is_supervisor %}
         <small><a class="btn btn-primary btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Return Agent's Account</a></small>
     {% endif %}

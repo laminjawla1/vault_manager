@@ -19,7 +19,7 @@ from django.views.generic import CreateView, UpdateView
 from agents.models import Branch, Movement, Zone
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
-                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm)
+                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm, SupervisorReportingForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
 from .utils import gmd
@@ -86,12 +86,11 @@ def dashboard(request):
                         date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
                         supervisor=True, deposit_type="Additional Cash"
                         ).aggregate(Sum('amount')).get('amount__sum') or 0
-        branches = Branch.objects.filter(teller__profile__zone__supervisor=request.user)
+        branches = Branch.objects.filter(teller__profile__zone__supervisor=request.user).order_by('name')
         total_branches = branches.count()
 
         page = request.GET.get('page', 1)
-        zones = Zone.objects.all().order_by('name')
-        paginator = Paginator(branches, 3)
+        paginator = Paginator(branches, 15)
         try:
             paginator = paginator.page(page)
         except:
@@ -342,6 +341,14 @@ def my_borrows(request):
 @login_required
 def reports(request):
     if request.user.profile.is_supervisor:
+        if request.method == 'POST':
+            form = SupervisorReportingForm(request.POST)
+            if form.is_valid():
+                form.instance.reporter = request.user
+                form.instance.zone = request.user.profile.zone
+                form.save()
+                messages.success(request, "Your daily report have been submitted successfully")
+                return HttpResponseRedirect(reverse("reports"))
         reports = MainVault.objects.filter(reporter=request.user).all().order_by('-date')
         page = request.GET.get('page', 1)
         paginator = Paginator(reports, 30)
@@ -351,7 +358,7 @@ def reports(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/s_reports.html", {
-            'reports': paginator
+            'reports': paginator, 'form': SupervisorReportingForm, 'current_date': datetime.now()
         })
     elif request.user.profile.is_cashier:
         if request.method == 'POST':
