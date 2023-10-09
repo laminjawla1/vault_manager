@@ -27,70 +27,79 @@ from .utils import gmd
 
 @login_required
 def index(request):
-    if request.user.is_staff:
+    if request.user.is_staff or request.user.profile.is_supervisor:
         return HttpResponseRedirect(reverse('dashboard'))
     else:
         return HttpResponseRedirect(reverse('reports'))
 
 @login_required
 def dashboard(request):
-    if not request.user.is_staff:
+    if not request.user.is_staff and not request.user.profile.is_supervisor:
         raise PermissionDenied()
-    account = Account.objects.filter(name='Main Vault').first()
-    opening_cash = Deposit.objects.filter(
-                    date__year=timezone.now().year, date__month=timezone.now().month, date__day=timezone.now().day,
-                    supervisor=True, deposit_type="Opening Cash"
-                    ).aggregate(Sum('amount')).get('amount__sum')
-    if not opening_cash:
-        opening_cash = 0
+    if request.user.is_staff:
+        account = Account.objects.filter(name='Main Vault').first()
+        opening_cash = Deposit.objects.filter(
+                        date__year=timezone.now().year, date__month=timezone.now().month, date__day=timezone.now().day,
+                        supervisor=True, deposit_type="Opening Cash"
+                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+        additional_cash = Deposit.objects.filter(
+                        date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
+                        supervisor=True, deposit_type="Additional Cash"
+                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+        users = User.objects.all().count()
+        zone_cnt = Zone.objects.all().count()
 
-    additional_cash = Deposit.objects.filter(
-                    date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
-                    supervisor=True, deposit_type="Additional Cash"
-                    ).aggregate(Sum('amount')).get('amount__sum')
-    if not additional_cash:
-        additional_cash = 0
+        page = request.GET.get('page', 1)
+        zones = Zone.objects.all().order_by('name')
+        paginator = Paginator(zones, 3)
+        try:
+            paginator = paginator.page(page)
+        except:
+            paginator = paginator.page(1)
 
-    users = len(User.objects.all())
-    zone_cnt = len(Zone.objects.all())
+        branches = len(Branch.objects.all())
+        t_withdrawals = len(
+            Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
+        withdrawals_amount = Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
+                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        t_borrows = len(
+            Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
+        borrow_amount = Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
+                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
+                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        deposits = len(Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
+        s_reports = len(MainVault.objects.all())
+        c_reports =  len(ZoneVault.objects.all())
+        return render(request, "vault/admin/admin_dashboard.html", {
+            'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
+            'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
+            'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports, 'loan_amount': borrow_amount,
+            't_loans': t_borrows, 'current_date' : datetime.now()
+        })
+    elif request.user.profile.is_supervisor:
+        opening_cash = Deposit.objects.filter(
+                        date__year=timezone.now().year, date__month=timezone.now().month, date__day=timezone.now().day,
+                        supervisor=True, deposit_type="Opening Cash"
+                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+        additional_cash = Deposit.objects.filter(
+                        date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
+                        supervisor=True, deposit_type="Additional Cash"
+                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+        branches = Branch.objects.filter(teller__profile__zone__supervisor=request.user)
+        total_branches = branches.count()
 
-    page = request.GET.get('page', 1)
-    zones = Zone.objects.all().order_by('name')
-    paginator = Paginator(zones, 3)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
-    branches = len(Branch.objects.all())
-    t_withdrawals = len(
-        Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
-    withdrawals_amount = Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                 date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum')
-    if not withdrawals_amount:
-        withdrawals_amount = 0
-
-    t_borrows = len(
-        Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
-    borrow_amount = Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                 date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum')
-    if not borrow_amount:
-        borrow_amount = 0
-
-    deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                 date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum')
-    if not deposit_amount:
-        deposit_amount = 0
-        
-    deposits = len(Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
-    s_reports = len(MainVault.objects.all())
-    c_reports =  len(ZoneVault.objects.all())
-    return render(request, "vault/dashboard.html", {
-        'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
-        'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
-        'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports, 'borrow_amount': borrow_amount,
-        't_borrows': t_borrows, 'current_date' : datetime.now()
-    })
+        page = request.GET.get('page', 1)
+        zones = Zone.objects.all().order_by('name')
+        paginator = Paginator(branches, 3)
+        try:
+            paginator = paginator.page(page)
+        except:
+            paginator = paginator.page(1)
+        return render(request, "vault/admin/supervisor_dashboard.html", {
+            'opening_cash': opening_cash, 'additional_cash': additional_cash, 'branches': paginator, 'total_branches': total_branches,
+            'current_date' : datetime.now()
+        })
     
 @login_required
 def cashier_deposits(request):
@@ -130,17 +139,18 @@ def supervisor_deposits(request):
         account.save()
         form.save()
         messages.success(request, "Agent's account credited successfully 😊")
+        return HttpResponseRedirect('supervisor_deposits')
     
     deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
-    paginator = Paginator(deposits, 20)
+    paginator = Paginator(deposits, 25)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
-    return render(request, "vault/supervisor_deposits.html", {
-        'deposits': paginator, 'form': CreditSupervisorAccountForm
+    return render(request, "vault/admin/supervisor_deposits.html", {
+        'deposits': paginator, 'form': CreditSupervisorAccountForm, 'current_date': datetime.now()
     })
 
 @login_required
@@ -220,8 +230,8 @@ def withdrawals(request):
     except:
         paginator = paginator.page(1)
 
-    return render(request, "vault/withdrawals.html", {
-        'withdrawals': paginator, 'form': BankWithdrawalForm
+    return render(request, "vault/admin/withdrawals.html", {
+        'withdrawals': paginator, 'form': BankWithdrawalForm, 'current_date': datetime.now(),
     })
 
 @login_required
@@ -552,8 +562,6 @@ def approve_cashier_report(request):
     if request.method == "POST":
         report = get_object_or_404(ZoneVault, id=request.POST["id"])
         report.status = True
-        report.reporter.profile.cash = 0
-        report.reporter.profile.add_cash = 0
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
         report.reporter.profile.has_return = True
@@ -574,8 +582,6 @@ def approve_supervisor_report(request):
     if request.method == "POST":
         report = get_object_or_404(MainVault, id=request.POST["id"])
         report.status = True
-        report.reporter.profile.cash = 0
-        report.reporter.profile.add_cash = 0
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
         report.reporter.profile.has_return = True
@@ -604,11 +610,11 @@ def approve_supervisor_deposit(request):
         deposit = get_object_or_404(Deposit, id=request.POST["id"])
         deposit.status = True
         if deposit.deposit_type == "Opening Cash":
-            deposit.agent.profile.cash += deposit.amount
-            deposit.agent.profile.opening_cash += deposit.amount
+            deposit.agent.profile.opening_cash = deposit.amount
+            deposit.agent.profile.balance += deposit.amount
         else:
             deposit.agent.profile.additional_cash += deposit.amount
-            deposit.agent.profile.add_cash += deposit.amount
+            deposit.agent.profile.balance += deposit.amount
         movement = Movement(name=request.user,
                             action=f"Approved {deposit.agent.username}'s deposit of {gmd(deposit.amount)}")
         movement.save()

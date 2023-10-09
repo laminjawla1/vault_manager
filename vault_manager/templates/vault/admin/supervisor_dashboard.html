@@ -1,23 +1,27 @@
-{% extends "vault/layout.html" %}
+{% extends "vault/admin/admin_layout.html" %}
 {% load humanize %}
 {% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="dropdown">
+          <button class="btn btn-success dropdown-toggle btn-danger btn-block" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Generate Daily Report
+          </button>
+          <ul class="dropdown-menu bg-warning">
+            <li><a class="dropdown-item fw-bold" href="{% url 'generate_cashier_report' %}">Cashier Reports</a></li>
+            <li><a class="dropdown-item fw-bold" href="{% url 'generate_supervisor_report' %}">Supervisor Reports</a></li>
+            <li><a class="dropdown-item fw-bold" href="{% url 'generate_cashier_deposit_report' %}">Cashier Deposits</a></li>
+            <li><a class="dropdown-item fw-bold" href="{% url 'generate_supervisor_deposit_report' %}">Supervisor Deposits</a></li>
+            <li><a class="dropdown-item fw-bold" href="{% url 'generate_withdrawal_report' %}">Withdrawals</a></li>
+          </ul>
+        </div>
+    </div>
+</div>
 <div class="row">
   <div class="col-md-12">
 
   </div>
   <main class="main-container">
-    <div class="dropdown">
-      <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Generate Daily Report
-      </button>
-      <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="{% url 'generate_cashier_report' %}">Cashier Reports</a></li>
-        <li><a class="dropdown-item" href="{% url 'generate_supervisor_report' %}">Supervisor Reports</a></li>
-        <li><a class="dropdown-item" href="{% url 'generate_cashier_deposit_report' %}">Cashier Deposits</a></li>
-        <li><a class="dropdown-item" href="{% url 'generate_supervisor_deposit_report' %}">Supervisor Deposits</a></li>
-        <li><a class="dropdown-item" href="{% url 'generate_withdrawal_report' %}">Withdrawals</a></li>
-      </ul>
-    </div>
     <div class="main-cards">
       <div class="card">
           <div class="card-inner">

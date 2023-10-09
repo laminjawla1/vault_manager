@@ -149,7 +149,7 @@ a[type="branches_under"]{
 
 
 
-/* ---------- MAIN ---------- */
+/* ---------- MAIN ----------
 
 .main-container {
   grid-area: main;
@@ -212,7 +212,7 @@ a[type="branches_under"]{
 
 .card-inner > .material-icons-outlined {
   font-size: 45px;
-}
+} */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
 
