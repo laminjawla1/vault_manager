@@ -70,7 +70,7 @@ class Deposit(models.Model):
     
     def get_absolute_url(self):
         if self.cashier:
-            return reverse('my_deposits')
+            return reverse('cashier_deposits')
         return reverse('supervisor_deposits')
 
 class Refund(models.Model):

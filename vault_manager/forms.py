@@ -1,5 +1,6 @@
 from django import forms
-from vault_manager.models import Account, Deposit, Bank, Withdraw, ZoneVault, BankDeposit, MainVault
+from vault_manager.models import (Account, Deposit, Bank, Withdraw, ZoneVault, BankDeposit,
+                                MainVault, CurrencyTransaction, Currency)
 from django.contrib.auth.models import User
 
 account_choices = [(account.name, account.name) for account in Account.objects.all()]
@@ -55,3 +56,11 @@ class BankDepositsForm(forms.ModelForm):
     class Meta:
         model = BankDeposit
         fields = ['bank', 'amount', 'account', 'comment']
+
+class CurrencyTransactionsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(CurrencyTransactionsForm, self).__init__(*args, **kwargs)
+        self.fields['currency'].queryset = Currency.objects.all().order_by("name")
+    class Meta:
+        model = CurrencyTransaction
+        fields = ['customer_name', 'phone_number', 'type', 'currency']
