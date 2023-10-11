@@ -47,10 +47,13 @@ class Profile(models.Model):
             image.thumbnail(output_size)
             image.save(self.image.path)
 
-class Movement(models.Model):
-    name = models.ForeignKey(User, on_delete=models.CASCADE)
-    action = models.TextField()
+class Ledger(models.Model):
+    agent = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, default=timezone.now)
+    narration = models.TextField()
+    debit = models.FloatField(null=False, default=0.0)
+    credit = models.FloatField(null=False, default=0.0)
+    balance = models.FloatField(null=False, default=0.0)
 
     def __str__(self):
-        return self.name.username
+        return self.agent

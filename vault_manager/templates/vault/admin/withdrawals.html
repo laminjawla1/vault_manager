@@ -6,7 +6,7 @@
   <div class="col-md-12">
     <h1 class="text-center text-white fw-bold">Withdrawals</h1>
     <small><a class="btn btn-primary btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Withdraw</a></small>
-    <table class="table table-striped table-bordered table-dark">
+    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
     <thead class="thead-dark">
         <tr>
         <th scope="col">Withdrawer</th>
@@ -83,8 +83,31 @@
           <div class="modal-body content-section">
             <form method="POST">
               {% csrf_token %}
-              <fieldset class="form-group">
-                  {{ form|crispy }}
+              <fieldset class="form-group text-white">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      {{ form.bank|as_crispy_field }}
+                    </div>
+                    <div class="form-group col-md-6">
+                      {{ form.account|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      {{ form.cheque_number|as_crispy_field }}
+                    </div>
+                    <div class="form-group col-md-6">
+                      {{ form.amount|as_crispy_field }}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      {{ form.image|as_crispy_field }}
+                    </div>
+                    <div class="form-group col-md-6">
+                      {{ form.comment|as_crispy_field }}
+                    </div>
+                </div>
               </fieldset>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

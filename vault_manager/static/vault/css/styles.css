@@ -21,6 +21,10 @@ body {
 #side-bar-container {
   background-color:#490549;
 }
+td {
+  align-items: center;
+  text-align: center;
+}
 .current-date, .username, #top-bar, .cat {
   color: #fff;
 }

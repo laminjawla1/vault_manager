@@ -2,7 +2,7 @@
 {% load humanize %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <h3 class="text-center text-white fw-bold">Cashier Deposits</h3>
+    <h3 class="text-center text-white fw-bold"><i class="fab fa-bitcoin mr-2 fa-2x"></i>Cashier Deposits</h3>
     <small><a class="btn btn-primary btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Deposit</a></small>
     <table class="table table-striped table-bordered table-dark">
     <thead class="thead-dark">
@@ -53,13 +53,13 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Crediting Account...</h1>
+            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Crediting Agent's Account...</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body content-section">
             <form method="POST">
               {% csrf_token %}
-              <fieldset class="form-group">
+              <fieldset class="form-group text-white">
                   {{ form|crispy }}
               </fieldset>
               <div class="modal-footer">

@@ -1,6 +1,6 @@
 from django import forms
 from vault_manager.models import (Account, Deposit, Bank, Withdraw, ZoneVault, BankDeposit,
-                                MainVault, CurrencyTransaction, Currency)
+                                MainVault, CurrencyTransaction, Currency, Borrow)
 from django.contrib.auth.models import User
 
 account_choices = [(account.name, account.name) for account in Account.objects.all()]
@@ -26,6 +26,14 @@ class BankWithdrawalForm(forms.ModelForm):
     class Meta:
         model = Withdraw
         fields = ['bank', 'cheque_number', 'amount', 'account', 'image', 'comment']
+
+class LoanForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(LoanForm, self).__init__(*args, **kwargs)
+        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
+    class Meta:
+        model = Borrow
+        fields = ['date', 'customer_name', 'address', 'phone', 'amount', 'account']
 
 class ReturnCashierAccountForm(forms.ModelForm):
     def __init__(self, zone, *args, **kwargs):
@@ -61,6 +69,16 @@ class CurrencyTransactionsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CurrencyTransactionsForm, self).__init__(*args, **kwargs)
         self.fields['currency'].queryset = Currency.objects.all().order_by("name")
+        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = CurrencyTransaction
-        fields = ['customer_name', 'phone_number', 'type', 'currency']
+        fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
+
+agents_choices = [(user, user) for user in User.objects.all()]
+class LedgerFilterForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(LedgerFilterForm, self).__init__(*args, **kwargs)
+        self.fields['date_from'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['date_to'].widget = forms.DateInput(attrs={'type': 'date'})
+    date_from = forms.DateField(label="From", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    date_to = forms.DateField(label="To", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)

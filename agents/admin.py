@@ -1,5 +1,5 @@
 from django.contrib import admin
-from agents.models import Profile, Zone, Branch, Movement
+from agents.models import Profile, Zone, Branch, Ledger
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
@@ -28,14 +28,13 @@ class ZoneAdmin(admin.ModelAdmin):
     search_fields = ('name', 'supervisor__username')
     sortable_by = ['name', 'supervisor__username']
 
-class MovementAdmin(admin.ModelAdmin):
-    list_display = ('name', 'action', 'date')
-    search_fields = ('name__username', 'action', 'date')
-    sortable_by = ['name__username', 'action', 'date']
-    readonly_fields = ['name', 'action', 'date']
+class LedgerAdmin(admin.ModelAdmin):
+    list_display = ('agent', 'narration', 'debit', 'credit', 'balance', 'date')
+    search_fields = ('agent__username', 'date')
+    sortable_by = ['agent__username', 'action', 'date']
 
 admin.site.unregister(User)
 admin.site.register(User, AccountsUserAdmin)
 admin.site.register(Branch, BranchAdmin)
 admin.site.register(Zone, ZoneAdmin)
-admin.site.register(Movement, MovementAdmin)
+admin.site.register(Ledger, LedgerAdmin)

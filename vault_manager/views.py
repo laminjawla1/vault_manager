@@ -16,13 +16,15 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView, UpdateView
 
-from agents.models import Branch, Movement, Zone
+from agents.models import Branch, Ledger, Zone
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
-                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm, SupervisorReportingForm)
+                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm, SupervisorReportingForm,
+                    CurrencyTransactionsForm, LoanForm, LedgerFilterForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
 from .utils import gmd
+from django.db.models import Q
 
 
 @login_required
@@ -116,7 +118,7 @@ def cashier_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/cashier_deposits.html", {
-        'deposits': paginator
+        'deposits': paginator, 'current_date' : datetime.now()
     })
 
 @login_required
@@ -129,17 +131,20 @@ def supervisor_deposits(request):
             if form.instance.account.balance - form.instance.amount < 0:
                 messages.error(request, "Insufficient Fund 😥")
                 return HttpResponseRedirect('supervisor_deposits')
-        form.instance.supervisor = True
-        movement = Movement(name=request.user,
-                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
-        movement.save()
-        account = get_object_or_404(Account, id=form.instance.account.id)
-        account.balance -= form.instance.amount
-        account.save()
-        form.save()
-        messages.success(request, "Agent's account credited successfully 😊")
-        return HttpResponseRedirect('supervisor_deposits')
-    
+            form.instance.supervisor = True
+            account = get_object_or_404(Account, id=form.instance.account.id)
+            account.balance -= form.instance.amount
+            account.save()
+            form.save()
+            if form.instance.deposit_type == "Opening Balance":
+                narration = f"{form.instance.amount} deposited to {form.instance.agent} as opening cash by {request.user}"
+            else:
+                narration = f"{form.instance.amount} deposited to {form.instance.agent} as additional cash by {request.user}"
+            Ledger(agent=form.instance.agent,
+                narration=narration, credit=form.isinstance.amount, balance=request.user.profile.balance
+            ).save()
+            messages.success(request, "Agent's account credited successfully 😊")
+            return HttpResponseRedirect('supervisor_deposits')
     deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 25)
@@ -168,31 +173,36 @@ def refunds(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/refunds.html", {
-        'refunds': paginator
+        'refunds': paginator, 'current_date' : datetime.now()
     })
 
 @login_required
-def vault_log(request):
+def ledger(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    logs = Movement.objects.all().order_by('-date')
+    if request.method == 'POST':
+        print(request.POST['agent'])
+        print(request.POST.get('date_from'))
+        print(request.POST.get('date_to'))
+    agents = User.objects.filter(
+        Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
+    )
+    logs = Ledger.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
-
-    paginator = Paginator(logs, 10)
-
+    paginator = Paginator(logs, 25)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
-    return render(request, "vault/vault_log.html", {
-        'logs': paginator
+    return render(request, "vault/ledger.html", {
+        'logs': paginator, 'current_date' : datetime.now(), 'form': LedgerFilterForm,
+        'agents': agents
     })
 
 @login_required
 def accounts(request):
-    if not request.user.is_superuser:
+    if not request.user.is_staff:
         raise PermissionDenied()
     if request.method == 'POST':
         account = get_object_or_404(Account, name=request.POST.get('account'))
@@ -204,7 +214,7 @@ def accounts(request):
         messages.success(request, 'Account updated successfully')
     return render(request, "vault/vault_accounts.html", {
         'accounts': Account.objects.all().order_by('-date'),
-        'form': UpdateVaultAccountForm
+        'form': UpdateVaultAccountForm, 'current_date' : datetime.now()
     })
 
 @login_required
@@ -253,18 +263,26 @@ def bank_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/bank_deposits.html", {
-        'bank_deposits': paginator, 'form': BankDepositsForm
+        'bank_deposits': paginator, 'form': BankDepositsForm, 'current_date' : datetime.now()
     })
 
 @login_required
 def borrows(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
+    if request.method == 'POST':
+        form = LoanForm(request.POST)
+        if form.is_valid():
+            form.instance.borrower = request.user
+            movement = Movement(name=request.user, action=f"Sent a loan request of amount {gmd(form.instance.amount)}.")
+            movement.save()
+            messages.success(request, "Loan request is sent successfully")
+            form.save()
+            return HttpResponseRedirect(reverse("borrows"))
     borrows = Borrow.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
 
-    paginator = Paginator(borrows, 10)
+    paginator = Paginator(borrows, 30)
 
     try:
         paginator = paginator.page(page)
@@ -272,7 +290,7 @@ def borrows(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/borrows.html", {
-        'borrows': paginator
+        'borrows': paginator, 'form': LoanForm, 'current_date' : datetime.now()
     })
 
 @login_required
@@ -280,10 +298,30 @@ def currency_transactions(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
-    transactions = CurrencyTransaction.objects.all().order_by('-date')
+    if request.method == 'POST':
+        form = CurrencyTransactionsForm(request.POST)
+        if form.is_valid():
+            form.instance.agent = request.user
+            form.instance.total_amount = form.instance.rate * form.instance.currency_amount
+            if form.instance.type == "buy":
+                if form.instance.account.balance - (form.instance.currency_amount * form.instance.rate) < 0:
+                    messages.error(request, "Insufficient Fund 😥")
+                    return HttpResponseRedirect(reverse('currency_transactions'))
+        if form.instance.type == "buy":
+            movement = Movement(name=request.user,
+                            action=f'{request.user.first_name} {request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
+            messages.success(request, "Currency bought successfully 😊")
+        else:
+            movement = Movement(name=request.user,
+                            action=f'{request.user.first_name} {request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
+            messages.success(request, "Currency sold successfully 😊")
+        form.save()
+        movement.save()
+        return HttpResponseRedirect(reverse("currency_transactions"))
+    transactions = CurrencyTransaction.objects.all().order_by('status', '-date')
     page = request.GET.get('page', 1)
 
-    paginator = Paginator(transactions, 10)
+    paginator = Paginator(transactions, 25)
 
     try:
         paginator = paginator.page(page)
@@ -291,7 +329,7 @@ def currency_transactions(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/currency_transactions.html", {
-        'transactions': paginator
+        'transactions': paginator, 'current_date': datetime.now(), 'form': CurrencyTransactionsForm
     })
 
 @login_required
@@ -315,17 +353,27 @@ def my_withdrawals(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/my_withdrawals.html", {
-            'withdrawals': paginator, 'form': BankWithdrawalForm
+            'withdrawals': paginator, 'form': BankWithdrawalForm, 'current_date' : datetime.now()
         })
     raise PermissionDenied()
 
 @login_required
 def my_borrows(request):
     if request.user.is_staff or request.user.profile.is_supervisor:
-        borrows = Borrow.objects.filter(borrower=request.user).all().order_by('-date')
+        if request.method == 'POST':
+            form = LoanForm(request.POST)
+            if form.is_valid():
+                form.instance.borrower = request.user
+                print(form.instance.amount)
+                movement = Movement(name=request.user, action=f"Sent a loan request of amount {gmd(form.instance.amount)}.")
+                movement.save()
+                messages.success(request, "Loan request is sent successfully")
+                form.save()
+                return HttpResponseRedirect(reverse("my_borrows"))
+        borrows = Borrow.objects.filter(borrower=request.user).all().order_by('status', '-date')
         page = request.GET.get('page', 1)
 
-        paginator = Paginator(borrows, 10)
+        paginator = Paginator(borrows, 30)
 
         try:
             paginator = paginator.page(page)
@@ -333,7 +381,7 @@ def my_borrows(request):
             paginator = paginator.page(1)
 
         return render(request, "vault/my_borrows.html", {
-            'borrows': paginator
+            'borrows': paginator, 'form': LoanForm, 'current_date' : datetime.now()
         })
     raise PermissionDenied()
 
@@ -382,7 +430,7 @@ def reports(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/c_reports.html", {
-            'reports': paginator, 'form': CashierReportingForm
+            'reports': paginator, 'form': CashierReportingForm, 'current_date' : datetime.now()
         })
     elif request.user.is_staff:
         return HttpResponseRedirect(reverse('daily_cashier_reports'))
@@ -401,7 +449,7 @@ def daily_supervisor_reports(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/supervisor_reports.html", {
-            'reports': paginator
+            'reports': paginator, 'current_date' : datetime.now()
         })
     raise PermissionDenied()
 
@@ -431,7 +479,7 @@ def daily_cashier_reports(request):
     except:
         paginator = paginator.page(1)
     return render(request, "vault/cashier_reports.html", {
-        'reports': paginator, 'form': form
+        'reports': paginator, 'form': form, 'current_date' : datetime.now()
     })
 
 class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -456,68 +504,8 @@ class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
             raise PermissionDenied()
         context = super(UpdateSupervisorAccount, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
+        context['current_date'] = datetime.now()
         return context
-
-
-class CreditCashierAccount(LoginRequiredMixin, CreateView):
-    model = Deposit
-    template_name = "vault/deposit_form.html"
-    fields = ['agent', 'deposit_type', 'amount']
-
-    def form_valid(self, form):
-        form.instance.account = Account.objects.filter(name="Main Vault").first()
-        if form.instance.deposit_type == "Opening Cash":
-            if self.request.user.profile.opening_cash - form.instance.amount < 0:
-                if self.request.user.profile.additional_cash - form.instance.amount >= 0:
-                    self.request.user.profile.opening_cash -= form.instance.amount
-                    self.request.user.profile.save()
-                else:
-                    messages.error(self.request, "Insufficient Fund 😥")
-                    return HttpResponseRedirect(reverse('my_deposits'))
-            else:
-                self.request.user.profile.opening_cash -= form.instance.amount
-                self.request.user.profile.save()
-        else:
-            if self.request.user.profile.additional_cash - form.instance.amount < 0:
-                if self.request.user.profile.opening_cash - form.instance.amount >= 0:
-                    self.request.user.profile.opening_cash -= form.instance.amount
-                    self.request.user.profile.save()
-                else:
-                    messages.error(self.request, "Insufficient Fund 😥")
-                    return HttpResponseRedirect(reverse('my_deposits'))
-            else:
-                self.request.user.profile.additional_cash -= form.instance.amount
-                self.request.user.profile.save()
-                
-        form.instance.cashier = True
-        movement = Movement(name=self.request.user,
-                            action=f"Credited {form.instance.agent.username}'s account with {gmd(form.instance.amount)}.")
-        movement.save()
-        send_mail(
-            'Credit Cashier Account',
-            f'{self.request.user.first_name} {self.request.user.last_name} credited {form.instance.agent.first_name} {form.instance.agent.last_name}\'s account with {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        self.request.user.profile.save()
-        messages.success(self.request, "Agent's account credited successfully 😊")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.profile.is_supervisor:
-            raise PermissionDenied()
-        context = super(CreditCashierAccount, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Credit'
-        return context
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.filter(
-                                            profile__is_cashier=True, 
-                                            profile__zone=self.request.user.profile.zone
-                                        ).exclude(id=self.request.user.id).order_by('username')
-        return form
 
 class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Deposit
@@ -781,35 +769,6 @@ class DepositCash(LoginRequiredMixin, CreateView):
             context = super(DepositCash, self).get_context_data(*args, **kwargs)
             context['button'] = 'Withdraw'
             context['legend'] = 'Withdraw Cash'
-            return context
-        raise PermissionDenied()
-
-
-class BorrowCash(LoginRequiredMixin, CreateView):
-    model = Borrow
-    template_name = "vault/withdraw_form.html"
-    fields = ['customer_name', 'address', 'phone', 'amount', 'account']
-
-    def form_valid(self, form):
-        form.instance.borrower = self.request.user
-        movement = Movement(name=self.request.user, action=f"Sent a borrow request of amount {gmd(form.instance.amount)}.")
-        movement.save()
-
-        send_mail(
-            'Cash Borrow Request',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent a borrow request of {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "Cash borrow request is sent successfully")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(BorrowCash, self).get_context_data(*args, **kwargs)
-            context['button'] = 'Borrow'
-            context['legend'] = 'Borrow Cash'
             return context
         raise PermissionDenied()
 
@@ -1153,69 +1112,15 @@ def generate_supervisor_deposit_report(request):
                         d.amount, d.deposit_type, d.status, d.date.strftime("%Y-%m-%d")))
     return response
 
-
-class CurrencyTransact(LoginRequiredMixin, CreateView):
-    model = CurrencyTransaction
-    template_name = "vault/currency_transact_form.html"
-    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
-
-    def form_valid(self, form):
-        form.instance.agent = self.request.user
-        form.instance.total_amount = form.instance.rate * form.instance.currency_amount
-        if form.instance.type == "buy":
-            if form.instance.account.balance - (form.instance.currency_amount * form.instance.rate) < 0:
-                messages.error(self.request, "Insufficient Fund 😥")
-                return HttpResponseRedirect(reverse('currency_transactions'))
-
-        if form.instance.type == "buy":
-            send_mail(
-                'Currency Purchase',
-                f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.', 
-                'yonnatech.g@gmail.com',
-                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-                fail_silently=False,
-            )
-        elif form.instance.type == "sell":
-            send_mail(
-                'Currency Sell',
-                f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {gmd(form.instance.total_amount)}.', 
-                'yonnatech.g@gmail.com',
-                [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-                fail_silently=False,
-            )
-        else:
-            messages.error(self.request, "Invalid transaction type")
-            return HttpResponseRedirect('currency_transact')
-            
-        if form.instance.type == "buy":
-            movement = Movement(name=self.request.user,
-                            action=f'{self.request.user.first_name} {self.request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
-        else:
-            movement = Movement(name=self.request.user,
-                            action=f'{self.request.user.first_name} {self.request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
-        movement.save()
-
-        if form.instance.type == "buy":
-            messages.success(self.request, "Currency bought successfully 😊")
-        else:
-            messages.success(self.request, "Currency sold successfully 😊")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.is_staff:
-            raise PermissionDenied()
-        context = super(CurrencyTransact, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Process'
-        return context
-
 class UpdateCurrencyTransact(LoginRequiredMixin, UpdateView):
     model = CurrencyTransaction
     template_name = "vault/currency_transact_form.html"
-    fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
+    fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
 
     def form_valid(self, form):
         movement = Movement(name=self.request.user,
                             action=f'Updated a currency transaction of {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
+        form.instance.total_amount = form.instance.rate * form.instance.currency_amount
         movement.save()
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
