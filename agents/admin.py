@@ -29,8 +29,8 @@ class ZoneAdmin(admin.ModelAdmin):
     sortable_by = ['name', 'supervisor__username']
 
 class LedgerAdmin(admin.ModelAdmin):
-    list_display = ('agent', 'narration', 'debit', 'credit', 'balance', 'date')
-    search_fields = ('agent__username', 'date')
+    list_display = ('agent', 'added_by', 'narration', 'debit', 'credit', 'balance', 'date')
+    search_fields = ('agent__username', 'added_by__username', 'date')
     sortable_by = ['agent__username', 'action', 'date']
 
 admin.site.unregister(User)

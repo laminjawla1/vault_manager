@@ -42,6 +42,7 @@
         <th scope="col">Date</th>
         <th scope="col">Narration</th>
         <th scope="col">Agent</th>
+        <th scope="col">Added By</th>
         <th scope="col">Debit</th>
         <th scope="col">Credit</th>
         <th scope="col">Balance</th>
@@ -53,10 +54,10 @@
                 <td>{{ log.date }}</td>
                 <td>{{ log.narration }}</td>
                 <td>{{ log.agent }}</td>
-                <td>{{ log.debit }}</td>
-                <td>{{ log.credit }}</td>
-                <td>{{ log.balance }}</td>
-                <td class="table-size">{{ log.date|date:"F d, Y" }}</td>
+                <td>{{ log.added_by }}</td>
+                <td>{{ log.debit|floatformat:2 }}</td>
+                <td>{{ log.credit|floatformat:2 }}</td>
+                <td>{{ log.balance|floatformat:2 }}</td>
             </tr>
         {% endfor %}
     </tbody>

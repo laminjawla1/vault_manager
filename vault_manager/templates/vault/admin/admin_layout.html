@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="{% static 'vault/js/popper.min1.js' %}"></script>
     <script src="{% static 'vault/js/bootstrap.min1.js' %}"></script>
+    <script src="{% static 'vault/js/script.js' %}"></script>
     <link rel="stylesheet" href="{% static 'vault/css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
@@ -38,21 +39,21 @@
 <body style="background-color: rgb(150, 156, 150);">
 {% if user.is_authenticated %}
     <div class="row" id="bar-container">
-        <div class="col-md-2 p-2 mb-0">
-            <p id="top-bar"><i class="fa fa-bank mr-2 fa-1x"></i>YONNA VAULT</p>
+        <div class="col-md-2 p-2">
+            <p id="top-bar"><i class="mr-2">
+                <img src="{% static 'vault/images/yonna1.png' %}" class="rounded-circle" width="50px">
+              </i>YONNA VAULT</p>
         </div>
-        <div class="col-md-8 p-2 mb-0">
+        <div class="col-md-8 p-2">
             <!-- <p id="top-bar">YONNA VAULT</p> -->
             <p class="username fw-bold">{{ user.first_name }} {{ user.last_name }}</p>
             <p class="current-date">{{ current_date }}</p>
         </div>
-        <div class="col-md-2 mb-0">
+        <div class="col-md-2">
             <div class="row">
-                <div class="col-md-6 p-2">
-                    <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
-                </div>
-                <div class="col-md-6 p-2">
-                    <a class="nav-item nav-link" href="{% url 'logout' %}"><img src="{% static 'vault/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
+                <div class="col-md-6 ml-auto mt-2">
+                    <a class="mr-3" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
+                    <a class="mr-4" href="{% url 'logout' %}"><img src="{% static 'vault/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
                 </div>
             </div>
         </div>
@@ -66,7 +67,7 @@
                         <div class="col-md-12">
                             <div class="category" onclick="toggleItems('category1')">
                                 <div class="row">
-                                    <div class="col-md-8">
+                                    <div class="col-md-8" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Tooltip on top">
                                         <i class="fa fa-lock mr-3"></i>
                                         Admin
                                     </div>
@@ -119,7 +120,7 @@
                                 
                             </div>
                             <ul id="category3Items" class="hidden">
-                                <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Bank Deposits</a></li>
+                                <li><a class="nav-link" href="{% url 'bank_deposits' %}">Bank Deposits</a></li>
                                 <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Cashier Deposits</a></li>
                                 <li><a class="nav-link" href="{% url 'supervisor_deposits' %}">Supervisor Deposits</a></li>
                                 <li><a class="nav-link" href="{% url 'refunds' %}">Refunds</a></li>
@@ -166,12 +167,12 @@
                                 {% if user.profile.balance > 50000 %}
                                     <a class="nav-item nav-link">
                                         <i class="fas fa-dollar-sign"></i>
-                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
                                     </a>
                                 {% else %}
                                     <a class="nav-item nav-link">
                                         <i class="fas fa-dollar-sign"></i>
-                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
                                     </a>
                                 {% endif %}
                             </div>
@@ -214,12 +215,12 @@
                                 {% if user.profile.balance > 50000 %}
                                     <a class="nav-item nav-link">
                                         <i class="fas fa-dollar-sign"></i>
-                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                        <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
                                     </a>
                                 {% else %}
                                     <a class="nav-item nav-link">
                                         <i class="fas fa-dollar-sign"></i>
-                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma}}</span>
+                                        <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
                                     </a>
                                 {% endif %}
                             </ul>

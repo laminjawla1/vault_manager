@@ -2,71 +2,59 @@
 {% load humanize %}
 {% load crispy_forms_tags %}
 {% block content %}
-<script>
-  function toggleSelectAll() {
-      const checkboxes = document.querySelectorAll('input[name="selected_objects"]');
-      const selectAllCheckbox = document.getElementById('select-all-checkbox');
-      checkboxes.forEach((checkbox) => {
-          checkbox.checked = selectAllCheckbox.checked;
-      });
-  }
-</script>
-    <h3 class="text-white text-center fw-bold">Cashier Deposits</h3>
-    <form action="">
-      {% csrf_token %}
-
-      <table class="table table-striped table-bordered table-dark">
-      <thead class="thead-dark">
-          <tr>
-          <th scope="col">Zone</th>
-          <th scope="col">Branch</th>
-          <th scope="col">Amount</th>
-          <th scope="col">Type</th>
-          <th scope="col">Status</th>
-          <th scope="col">Date</th>
-          </tr>
-      </thead>
-      <tbody>
-          {% for deposit in deposits %}
-              <tr>
-                <td>{{ deposit.agent.profile.zone}}</td>
-                {% if deposit.status or user.profile.is_supervisor %}
-                  <td>{{ deposit.agent.profile.branch}}</td>
-                  {% else %}
-                    <td><a href="{% url 'update_cashier_deposit' deposit.id %}">{{ deposit.agent.profile.branch}}</a></td>
-                  {% endif %}
-                  <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
-                  <td>{{ deposit.deposit_type }}</td>
-                  {% if deposit.status %}
-                      <td style="color: green">Approved</td>
-                  {% else %}
-                      <td style="color: red">Pending</td>
-                  {% endif %}
-                  <td>{{ deposit.date|date:"F d, Y" }}</td>
-                  <td><input type="checkbox" name="selected_objects" value="{{ deposit.id }}"></td>
-                  {% if not user.profile.is_supervisor %}
-                    {% if not deposit.status %}
-                        <td>
-                            <form action="{% url 'approve_cashier_deposit' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ deposit.id }}" />
-                                <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                            </form>
-                        </td>
-                        <td>
-                            <form action="{% url 'disapprove_cashier_deposit' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ deposit.id }}" />
-                                <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
-                            </form>
-                        </td>
-                    {% endif %}
-                  {% endif %}
-              </tr>
-          {% endfor %}
-      </tbody>
-      </table>
-    </form>
+<div class="row">
+  <div class="col-md-12">
+    <h3 class="text-white text-center fw-bold"><i class="fas fa-users fa-2x mr-3"></i>Cashier Deposits</h3>
+    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+    <thead class="thead-dark text-center">
+        <tr>
+        <th scope="col">Zone</th>
+        <th scope="col">Branch</th>
+        <th scope="col">Amount</th>
+        <th scope="col">Type</th>
+        <th scope="col">Status</th>
+        <th scope="col">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for deposit in deposits %}
+            <tr>
+              <td>{{ deposit.agent.profile.zone}}</td>
+              {% if deposit.status or user.profile.is_supervisor %}
+                <td>{{ deposit.agent.profile.branch}}</td>
+                {% else %}
+                  <td><a href="{% url 'update_cashier_deposit' deposit.id %}">{{ deposit.agent.profile.branch}}</a></td>
+                {% endif %}
+                <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
+                <td>{{ deposit.deposit_type }}</td>
+                {% if deposit.status %}
+                    <td style="color: green">Approved</td>
+                {% else %}
+                    <td style="color: red">Pending</td>
+                {% endif %}
+                <td>{{ deposit.date|date:"F d, Y" }}</td>
+                {% if not deposit.status %}
+                    <td>
+                        <form action="{% url 'approve_cashier_deposit' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ deposit.id }}" />
+                            <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{% url 'disapprove_cashier_deposit' %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <input type="hidden" name="id" value="{{ deposit.id }}" />
+                            <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
+                        </form>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+  </div>
+</div>
     {% if deposits.has_previous %}
       <a class="btn btn-outline-info mb-4" href="{% url 'cashier_deposits' %}?page=1">First</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'cashier_deposits' %}?page={{ deposits.previous_page_number }}">Previous</a>

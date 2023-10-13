@@ -40,18 +40,18 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Crediting Account...</h1>
+            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Updating Account...</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body content-section">
             <form method="POST">
               {% csrf_token %}
-              <fieldset class="form-group">
+              <fieldset class="form-group text-white">
                   {{ form|crispy }}
               </fieldset>
               <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="submit" class="btn btn-primary">Credit</button>
+                <button type="submit" class="btn btn-primary">Update</button>
               </div>
           </form>
           </div>

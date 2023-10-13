@@ -19,7 +19,7 @@ from django.views.generic import CreateView, UpdateView
 from agents.models import Branch, Ledger, Zone
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
-                    ReturnCashierAccountForm, CashierReportingForm, BankDepositsForm, SupervisorReportingForm,
+                    ReturnCashierAccountForm, CashierReportingForm, BankDepositForm, SupervisorReportingForm,
                     CurrencyTransactionsForm, LoanForm, LedgerFilterForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
@@ -70,7 +70,7 @@ def dashboard(request):
                                                     date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
         deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
                                                     date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
-        deposits = len(Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
+        deposits = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).count()
         s_reports = len(MainVault.objects.all())
         c_reports =  len(ZoneVault.objects.all())
         return render(request, "vault/admin/admin_dashboard.html", {
@@ -130,21 +130,23 @@ def supervisor_deposits(request):
         if form.is_valid():
             if form.instance.account.balance - form.instance.amount < 0:
                 messages.error(request, "Insufficient Fund 😥")
-                return HttpResponseRedirect('supervisor_deposits')
+                return HttpResponseRedirect(reverse('supervisor_deposits'))
             form.instance.supervisor = True
-            account = get_object_or_404(Account, id=form.instance.account.id)
-            account.balance -= form.instance.amount
-            account.save()
+            form.instance.account.balance -= form.instance.amount
+            form.instance.account.save()
             form.save()
             if form.instance.deposit_type == "Opening Balance":
-                narration = f"{form.instance.amount} deposited to {form.instance.agent} as opening cash by {request.user}"
+                narration = f"{gmd(form.instance.amount)} deposited to {form.instance.agent} as opening cash"
             else:
-                narration = f"{form.instance.amount} deposited to {form.instance.agent} as additional cash by {request.user}"
-            Ledger(agent=form.instance.agent,
-                narration=narration, credit=form.isinstance.amount, balance=request.user.profile.balance
+                narration = f"{form.instance.amount} deposited to {form.instance.agent} as additional cash"
+            Ledger(
+                agent=form.instance.agent,
+                narration=narration, credit=form.instance.amount,
+                balance=form.instance.agent.profile.balance,
+                added_by=request.user
             ).save()
             messages.success(request, "Agent's account credited successfully 😊")
-            return HttpResponseRedirect('supervisor_deposits')
+            return HttpResponseRedirect(reverse('supervisor_deposits'))
     deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 25)
@@ -226,12 +228,10 @@ def withdrawals(request):
         form = BankWithdrawalForm(request.POST)
         if form.is_valid():
             form.instance.withdrawer = request.user
-        movement = Movement(name=request.user, action=f"Sent a withdrawal request of amount {gmd(form.instance.amount)}.")
-        movement.save()
         messages.success(request, "Cash withdrawal request is sent successfully")
         form.save()
         return HttpResponseRedirect(reverse("withdrawals"))
-    withdrawals = Withdraw.objects.all().order_by('-date')
+    withdrawals = Withdraw.objects.all().order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(withdrawals, 30)
     try:
@@ -249,21 +249,21 @@ def bank_deposits(request):
         raise PermissionDenied()
     
     if request.method == "POST":
-        form = BankDepositsForm(request.POST)
+        form = BankDepositForm(request.POST)
         if form.is_valid():
-            ...
-    deposits = BankDeposit.objects.all().order_by('-date')
+            form.instance.depositor = request.user
+            form.save()
+            return HttpResponseRedirect(reverse("bank_deposits"))
+    deposits = BankDeposit.objects.all().order_by('status', '-date')
     page = request.GET.get('page', 1)
-
     paginator = Paginator(deposits, 25)
-
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
 
-    return render(request, "vault/bank_deposits.html", {
-        'bank_deposits': paginator, 'form': BankDepositsForm, 'current_date' : datetime.now()
+    return render(request, "vault/admin/bank_deposits.html", {
+        'bank_deposits': paginator, 'form': BankDepositForm, 'current_date' : datetime.now(),
     })
 
 @login_required
@@ -274,8 +274,6 @@ def borrows(request):
         form = LoanForm(request.POST)
         if form.is_valid():
             form.instance.borrower = request.user
-            movement = Movement(name=request.user, action=f"Sent a loan request of amount {gmd(form.instance.amount)}.")
-            movement.save()
             messages.success(request, "Loan request is sent successfully")
             form.save()
             return HttpResponseRedirect(reverse("borrows"))
@@ -308,15 +306,10 @@ def currency_transactions(request):
                     messages.error(request, "Insufficient Fund 😥")
                     return HttpResponseRedirect(reverse('currency_transactions'))
         if form.instance.type == "buy":
-            movement = Movement(name=request.user,
-                            action=f'{request.user.first_name} {request.user.last_name} purchased {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
             messages.success(request, "Currency bought successfully 😊")
         else:
-            movement = Movement(name=request.user,
-                            action=f'{request.user.first_name} {request.user.last_name} sold {form.instance.currency_amount} {form.instance.currency} to {form.instance.customer_name} at {form.instance.rate}. Total: {gmd(form.instance.total_amount)}.')
             messages.success(request, "Currency sold successfully 😊")
         form.save()
-        movement.save()
         return HttpResponseRedirect(reverse("currency_transactions"))
     transactions = CurrencyTransaction.objects.all().order_by('status', '-date')
     page = request.GET.get('page', 1)
@@ -339,8 +332,6 @@ def my_withdrawals(request):
             form = BankWithdrawalForm(request.POST)
             if form.is_valid():
                 form.instance.withdrawer = request.user
-                movement = Movement(name=request.user, action=f"Sent a withdrawal request of amount {gmd(form.instance.amount)}.")
-                movement.save()
                 messages.success(request, "Cash withdrawal request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_withdrawals"))
@@ -365,8 +356,6 @@ def my_borrows(request):
             if form.is_valid():
                 form.instance.borrower = request.user
                 print(form.instance.amount)
-                movement = Movement(name=request.user, action=f"Sent a loan request of amount {gmd(form.instance.amount)}.")
-                movement.save()
                 messages.success(request, "Loan request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_borrows"))
@@ -394,6 +383,8 @@ def reports(request):
             if form.is_valid():
                 form.instance.reporter = request.user
                 form.instance.zone = request.user.profile.zone
+                form.instance.opening_cash = form.instance.reporter.profile.opening_cash
+                form.instance.additional_cash = form.instance.reporter.profile.additional_cash
                 form.save()
                 messages.success(request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
@@ -412,12 +403,11 @@ def reports(request):
         if request.method == 'POST':
             form = CashierReportingForm(request.POST)
             if form.is_valid():
-                if request.user.profile.has_return:
-                    messages.error(request, "You have already submitted your report")
-                    return HttpResponseRedirect(reverse("reports"))
                 form.instance.reporter = request.user
                 form.instance.branch = request.user.profile.branch
                 form.instance.zone = request.user.profile.zone
+                form.instance.opening_cash = form.instance.reporter.profile.opening_cash
+                form.instance.additional_cash = form.instance.reporter.profile.additional_cash
                 form.save()
                 messages.success(request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
@@ -460,13 +450,14 @@ def daily_cashier_reports(request):
     if request.method == 'POST':
         form = ReturnCashierAccountForm(request.user.profile.zone, request.POST)
         if form.is_valid():
-            if form.instance.reporter.profile.has_return:
-                messages.error(request, f"You have already submitted {form.instance.reporter.username}'s report")
-                return HttpResponseRedirect(reverse("daily_cashier_reports"))
             form.instance.branch = form.instance.reporter.profile.branch
             form.instance.zone = form.instance.reporter.profile.zone
+            form.instance.opening_cash = form.instance.reporter.profile.opening_cash
+            form.instance.additional_cash = form.instance.reporter.profile.additional_cash
             form.save()
-    reports = ZoneVault.objects.all().order_by('-date')
+            messages.success(request, f"{form.instance.reporter}'s daily report have been submitted successfully")
+            return HttpResponseRedirect(reverse("daily_cashier_reports"))
+    reports = ZoneVault.objects.all().order_by('status', '-date')
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
             reporter__profile__zone=request.user.profile.zone
@@ -488,9 +479,6 @@ class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
     fields = ['agent', 'deposit_type', 'amount', 'account']
 
     def form_valid(self, form):
-        movement = Movement(name=self.request.user,
-                            action=f"Updated the deposit of {form.instance.agent.username}. Amount: {gmd(form.instance.amount)}.")
-        movement.save()
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
     
@@ -513,9 +501,6 @@ class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     fields = ['agent', 'deposit_type', 'amount', 'account']
 
     def form_valid(self, form):
-        movement = Movement(name=self.request.user,
-                            action=f"Updated the deposit of {form.instance.agent.username}. Amount: {gmd(form.instance.amount)}.")
-        movement.save()
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
     
@@ -537,20 +522,15 @@ def approve_cashier_deposit(request):
         deposit = get_object_or_404(Deposit, id=request.POST["id"])
         deposit.status = True
         if deposit.deposit_type == "Opening Cash":
-            deposit.agent.profile.cash += deposit.amount
-            deposit.agent.profile.opening_cash += deposit.amount
+            deposit.agent.profile.opening_cash = deposit.amount
+            deposit.agent.profile.closing_balance = 0
         else:
             deposit.agent.profile.additional_cash += deposit.amount
-            deposit.agent.profile.add_cash += deposit.amount
-        movement = Movement(name=request.user,
-                            action=f"Approved {deposit.agent.username}'s deposit of {gmd(deposit.amount)}")
-        deposit.agent.profile.closing_balance = 0
-        deposit.agent.profile.has_return = False
-        movement.save()
+        deposit.agent.profile.balance += deposit.amount
         deposit.agent.profile.save()
         deposit.save()
         messages.success(request, "Deposit Approved")
-        return HttpResponseRedirect(reverse('cashier_deposits'))
+    return HttpResponseRedirect(reverse('cashier_deposits'))
     
 @login_required
 def approve_cashier_report(request):
@@ -559,18 +539,12 @@ def approve_cashier_report(request):
         report.status = True
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
-        report.reporter.profile.has_return = True
+        report.reporter.profile.balance = 0
         report.reporter.profile.closing_balance = report.closing_balance
-        report.reporter.profile.zone.supervisor.profile.closing_balance += report.closing_balance
-        report.reporter.profile.zone.supervisor.profile.save()
-
-        movement = Movement(name=request.user,
-                            action=f"Approved {report.reporter.username}'s report")
-        movement.save()
         report.reporter.profile.save()
         report.save()
         messages.success(request, "Report Approved")
-        return HttpResponseRedirect(reverse('daily_cashier_reports'))
+    return HttpResponseRedirect(reverse('daily_cashier_reports'))
     
 @login_required
 def approve_supervisor_report(request):
@@ -590,14 +564,33 @@ def approve_supervisor_report(request):
             return HttpResponseRedirect("accounts")
         
         report.reporter.profile.closing_balance = report.closing_balance
-        
-        movement = Movement(name=request.user,
-                            action=f"Approved {report.reporter.username}'s report")
-        movement.save()
         report.reporter.profile.save()
         report.save()
         messages.success(request, "Report Approved")
-        return HttpResponseRedirect(reverse('daily_supervisor_reports'))
+    return HttpResponseRedirect(reverse('daily_supervisor_reports'))
+    
+@login_required
+def disapprove_supervisor_report(request):
+    if request.method == "POST":
+        report = get_object_or_404(MainVault, id=request.POST["id"])
+        report.status = True
+        report.reporter.profile.opening_cash = 0
+        report.reporter.profile.additional_cash = 0
+        report.reporter.profile.has_return = True
+
+        account = Account.objects.filter(name="Main Vault").first()
+        if account:
+            account.balance += report.closing_balance
+            account.save()
+        else:
+            messages.error(request, "Couldn't find the Main Vault Account")
+            return HttpResponseRedirect("accounts")
+        
+        report.reporter.profile.closing_balance = report.closing_balance
+        report.reporter.profile.save()
+        report.save()
+        messages.success(request, "Report Approved")
+    return HttpResponseRedirect(reverse('daily_supervisor_reports'))
 
 @login_required
 def approve_supervisor_deposit(request):
@@ -607,18 +600,24 @@ def approve_supervisor_deposit(request):
         if deposit.deposit_type == "Opening Cash":
             deposit.agent.profile.opening_cash = deposit.amount
             deposit.agent.profile.balance += deposit.amount
+            deposit.agent.profile.closing_balance = 0
         else:
             deposit.agent.profile.additional_cash += deposit.amount
             deposit.agent.profile.balance += deposit.amount
-        movement = Movement(name=request.user,
-                            action=f"Approved {deposit.agent.username}'s deposit of {gmd(deposit.amount)}")
-        movement.save()
         deposit.agent.profile.save()
         deposit.save()
-        deposit.agent.profile.closing_balance = 0
-        deposit.agent.profile.has_return = False
         messages.success(request, "Deposit Approved")
-        return HttpResponseRedirect(reverse('supervisor_deposits'))
+    return HttpResponseRedirect(reverse('supervisor_deposits'))
+
+@login_required
+def disapprove_supervisor_deposit(request):
+    if request.method == "POST":
+        deposit = get_object_or_404(Deposit, id=request.POST["id"])
+        deposit.account.balance += deposit.amount
+        deposit.account.save()
+        deposit.delete()
+        messages.success(request, "Deposit Disapproved")
+    return HttpResponseRedirect(reverse('supervisor_deposits'))
 
 @login_required
 def approve_withdrawal_request(request):
@@ -636,11 +635,8 @@ def approve_withdrawal_request(request):
             withdrawal.account.balance += withdrawal.amount
         withdrawal.save()
         withdrawal.account.save()
-        movement = Movement(name=request.user, action=f"Approved {withdrawal.withdrawer.username}'s \
-                             withdrawal request of {gmd(withdrawal.amount)}")
-        movement.save()
         messages.success(request, "Withdrawal Accepted")
-        return HttpResponseRedirect(reverse('withdrawals'))
+    return HttpResponseRedirect(reverse('withdrawals'))
 
 @login_required
 def approve_deposit_request(request):
@@ -650,11 +646,8 @@ def approve_deposit_request(request):
         deposit.account.balance -= deposit.amount
         deposit.save()
         deposit.account.save()
-        movement = Movement(name=request.user, action=f"Approved {deposit.depositor.username}'s \
-                            deposit request of {gmd(deposit.amount)}")
-        movement.save()
         messages.success(request, "Deposit Accepted")
-        return HttpResponseRedirect(reverse('bank_deposits'))
+    return HttpResponseRedirect(reverse('bank_deposits'))
 
 @login_required
 def approve_borrow_request(request):
@@ -664,20 +657,14 @@ def approve_borrow_request(request):
         borrow.account.balance += borrow.amount
         borrow.save()
         borrow.account.save()
-        movement = Movement(name=request.user, action=f"Approved {borrow.borrower.username}'s \
-                             borrow request of {gmd(borrow.amount)}")
-        movement.save()
         messages.success(request, "Borrow Accepted")
-        return HttpResponseRedirect(reverse('borrows'))
+    return HttpResponseRedirect(reverse('borrows'))
 
 @login_required
 def disapprove_withdrawal_request(request):
     if request.method == "POST":
         withdrawal = get_object_or_404(Withdraw, id=request.POST["id"])
         withdrawal.delete()
-        movement = Movement(name=request.user, action=f"Disapproved {withdrawal.withdrawer.username}'s \
-                             withdrawal request of {gmd(withdrawal.amount)}")
-        movement.save()
         messages.success(request, "Withdrawal Rejected 😔")
         return HttpResponseRedirect(reverse('withdrawals'))
 
@@ -685,21 +672,17 @@ def disapprove_withdrawal_request(request):
 def disapprove_cashier_deposit(request):
     if request.method == "POST":
         deposit = get_object_or_404(Deposit, id=request.POST["id"])
+        deposit.agent.profile.zone.supervisor.profile.balance += deposit.amount
+        deposit.agent.profile.zone.supervisor.profile.save()
         deposit.delete()
-        movement = Movement(name=request.user, action=f"Disapproved {deposit.agent.username}'s \
-                             deposit request of {gmd(deposit.amount)}")
-        movement.save()
         messages.success(request, "Deposit Rejected 😔")
-        return HttpResponseRedirect(reverse('cashier_deposits'))
+    return HttpResponseRedirect(reverse('cashier_deposits'))
 
 @login_required
 def disapprove_borrow_request(request):
     if request.method == "POST":
         borrow = get_object_or_404(Borrow, id=request.POST["id"])
         borrow.delete()
-        movement = Movement(name=request.user, action=f"Disapproved {borrow.borrower.username}'s \
-                             borrow request of {gmd(borrow.amount)}")
-        movement.save()
         messages.success(request, "Borrow Rejected 😔")
         return HttpResponseRedirect(reverse('borrows'))
 
@@ -723,9 +706,6 @@ class RefundAgent(LoginRequiredMixin, CreateView):
                 form.instance.agent.profile.add_cash -= form.instance.amount
                 form.instance.agent.profile.additional_cash -= form.instance.amount
         messages.success(self.request, "Agent's account refunded successfully")
-        movement = Movement(name=self.request.user, action=f"Refunded {form.instance.agent.username}'s account with a refund type of \
-                            {form.instance.refund_type} of amount {gmd(form.instance.amount)}.")
-        movement.save()
         form.instance.agent.profile.save()
         return super().form_valid(form)
 
@@ -751,16 +731,6 @@ class DepositCash(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.depositor = self.request.user
-        movement = Movement(name=self.request.user, action=f"Sent a deposit request of amount {gmd(form.instance.amount)}.")
-        movement.save()
-
-        send_mail(
-            'Cash Withdrawal Request',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent a deposit request of {gmd(form.instance.amount)}.', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
         messages.success(self.request, "Cash deposit request is sent successfully")
         return super().form_valid(form)
 
@@ -779,9 +749,6 @@ class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):
     fields = ['bank', 'cheque_number', 'amount', 'account', 'comment']
 
     def form_valid(self, form):
-        movement = Movement(name=self.request.user, action=f"Updated the withdrawal request of \
-                            {form.instance.withdrawer.username}. Amount: {gmd(form.instance.amount)}.")
-        movement.save()
         messages.success(self.request, "Withdrawal request updated successfully.")
         return super().form_valid(form)
     
@@ -805,9 +772,6 @@ class UpdateBorrowCash(LoginRequiredMixin, UpdateView):
     fields = ['customer_name', 'address', 'phone', 'amount', 'account']
 
     def form_valid(self, form):
-        movement = Movement(name=self.request.user, action=f"Updated the borrow request of \
-                            {form.instance.borrower.username}. Amount: {gmd(form.instance.amount)}.")
-        movement.save()
         messages.success(self.request, "Borrow request updated successfully.")
         return super().form_valid(form)
     
@@ -824,35 +788,6 @@ class UpdateBorrowCash(LoginRequiredMixin, UpdateView):
             return context
         raise PermissionDenied()
 
-
-class SupervisorReporting(LoginRequiredMixin, CreateView):
-    model = MainVault
-    template_name = "vault/daily_report_form.html"
-    fields = ['opening_cash', 'additional_cash', 'closing_balance']
-
-    def form_valid(self, form):
-        if self.request.user.profile.has_return:
-            messages.error(self.request, "You have already submitted your report")
-            return HttpResponseRedirect(reverse("reports"))
-        form.instance.reporter = self.request.user
-        form.instance.zone = self.request.user.profile.zone
-
-        send_mail(
-            'Daily Supervisor Report',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "Your daily report have been submitted successfully")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.profile.is_supervisor:
-            raise PermissionDenied()
-        context = super(SupervisorReporting, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Send'
-        return context
 
 class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
     model = MainVault
@@ -874,37 +809,6 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
             raise PermissionDenied()
         context = super(UpdateSupervisorReporting, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
-        return context
-    
-
-
-class CashierReporting(LoginRequiredMixin, CreateView):
-    model = ZoneVault
-    template_name = "vault/daily_report_form.html"
-    fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
-    def form_valid(self, form):
-        if self.request.user.profile.has_return:
-            messages.error(self.request, "You have already submitted your report")
-            return HttpResponseRedirect(reverse("reports"))
-        form.instance.reporter = self.request.user
-        form.instance.branch = self.request.user.profile.branch
-        form.instance.zone = self.request.user.profile.zone
-
-        send_mail(
-            'Daily Cashier Report',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "Your daily report have been submitted successfully")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.profile.is_cashier:
-            raise PermissionDenied()
-        context = super(CashierReporting, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Send'
         return context
     
 class ReturnCashierAccount(LoginRequiredMixin, CreateView):
@@ -1118,10 +1022,7 @@ class UpdateCurrencyTransact(LoginRequiredMixin, UpdateView):
     fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
 
     def form_valid(self, form):
-        movement = Movement(name=self.request.user,
-                            action=f'Updated a currency transaction of {form.instance.currency_amount} {form.instance.currency} from {form.instance.customer_name} at {gmd(form.instance.total_amount)}.')
         form.instance.total_amount = form.instance.rate * form.instance.currency_amount
-        movement.save()
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
     
@@ -1142,9 +1043,6 @@ def disapprove_currency_transaction(request):
     if request.method == "POST":
         transaction = get_object_or_404(CurrencyTransaction, id=request.POST["id"])
         transaction.delete()
-        movement = Movement(name=request.user, action=f"Disapproved {transaction.agent.username}'s \
-                             currency transaction of {gmd(transaction.total_amount)}")
-        movement.save()
         messages.success(request, "Transaction Disapproved 😔")
         return HttpResponseRedirect(reverse('currency_transactions'))
 
@@ -1160,8 +1058,5 @@ def approve_currency_transaction(request):
             account.balance += transaction.total_amount
         transaction.save()
         account.save()
-        movement = Movement(name=request.user, action=f"Approved {transaction.agent.username}'s \
-                             currency transaction of {gmd(transaction.total_amount)}")
-        movement.save()
         messages.success(request, "Transaction Approved")
         return HttpResponseRedirect(reverse('currency_transactions'))

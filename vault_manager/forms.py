@@ -60,7 +60,7 @@ class SupervisorReportingForm(forms.ModelForm):
         model = MainVault
         fields = ['date', 'closing_balance']
 
-class BankDepositsForm(forms.ModelForm):
+class BankDepositForm(forms.ModelForm):
     class Meta:
         model = BankDeposit
         fields = ['bank', 'amount', 'account', 'comment']

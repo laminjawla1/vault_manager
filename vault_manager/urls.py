@@ -1,16 +1,16 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, my_borrows,
+from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, my_borrows, bank_deposits,
                     UpdateSupervisorAccount, UpdateCashierAccount, approve_cashier_deposit,
                     approve_supervisor_deposit, refunds, RefundAgent, ledger, accounts, withdrawals,
                     UpdateWithdrawCash, approve_withdrawal_request, my_withdrawals, disapprove_withdrawal_request,
-                    SupervisorReporting, daily_supervisor_reports, UpdateSupervisorReporting, CashierReporting, UpdateCashierReporting,
+                    daily_supervisor_reports, UpdateSupervisorReporting, UpdateCashierReporting, disapprove_supervisor_report,
                     daily_cashier_reports, approve_cashier_report, approve_supervisor_report, generate_cashier_deposit_report, 
                     generate_cashier_report, generate_supervisor_report, generate_withdrawal_report, generate_supervisor_deposit_report,
                     UpdateBorrowCash, borrows, approve_borrow_request, disapprove_borrow_request, currency_transactions,
                     UpdateCurrencyTransact, approve_currency_transaction, disapprove_currency_transaction, ReturnCashierAccount,
-                    UpdateReturnCashierAccount, bank_deposits, disapprove_cashier_deposit)
+                    UpdateReturnCashierAccount, bank_deposits, disapprove_cashier_deposit, disapprove_supervisor_deposit)
 
 urlpatterns = [
     path("disapprove_currency_transaction", disapprove_currency_transaction, name="disapprove_currency_transaction"),
@@ -24,8 +24,6 @@ urlpatterns = [
     path("generate_cashier_report/", generate_cashier_report, name="generate_cashier_report"),
     path("generate_supervisor_report/", generate_supervisor_report, name="generate_supervisor_report"),
     path("agents/refunds/", refunds, name='refunds'),
-    path("supervisors/reports/new", SupervisorReporting.as_view(), name='supervisor_reporting'),
-    path("cashiers/reports/new", CashierReporting.as_view(), name='cashier_reporting'),
     path("supervisor/cashier/reports/new", ReturnCashierAccount.as_view(), name='return_cashier_account'),
     path("supervisor/reports/<int:pk>/update", UpdateSupervisorReporting.as_view(), name='update_supervisor_reporting'),
     path("cashier/reports/<int:pk>/update", UpdateCashierReporting.as_view(), name='update_cashier_reporting'),
@@ -35,6 +33,7 @@ urlpatterns = [
     path("agents/logs", ledger, name='ledger'),
     path("accounts", accounts, name='accounts'),
     path("withdrawals", withdrawals, name='withdrawals'),
+    path("bank_deposits", bank_deposits, name='bank_deposits'),
     path("bank_deposits", bank_deposits, name='bank_deposits'),
     path("borrows", borrows, name='borrows'),
     path("my_withdrawals", my_withdrawals, name='my_withdrawals'),
@@ -50,8 +49,10 @@ urlpatterns = [
     path("approve_withdrawal_request", approve_withdrawal_request, name="approve_withdrawal_request"),
     path("approve_borrow_request", approve_borrow_request, name="approve_borrow_request"),
     path("disapprove_withdrawal_request", disapprove_withdrawal_request, name="disapprove_withdrawal_request"),
+    path("disapprove_supervisor_deposit", disapprove_supervisor_deposit, name="disapprove_supervisor_deposit"),
     path("disapprove_borrow_request", disapprove_borrow_request, name="disapprove_borrow_request"),
     path("approve_supervisor_deposit", approve_supervisor_deposit, name="approve_supervisor_deposit"),
+    path("disapprove_supervisor_report", disapprove_supervisor_report, name="disapprove_supervisor_report"),
     path("supervisor_deposit/<int:pk>/update", UpdateSupervisorAccount.as_view(), name="update_supervisor_deposit"),
     path("cashier_deposit/<int:pk>/update", UpdateCashierAccount.as_view(), name="update_cashier_deposit"),
     path("withdrawals/<int:pk>/update", UpdateWithdrawCash.as_view(), name="update_withdrawal_request"),

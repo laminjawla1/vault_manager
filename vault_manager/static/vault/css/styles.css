@@ -21,7 +21,7 @@ body {
 #side-bar-container {
   background-color:#490549;
 }
-td {
+td, th {
   align-items: center;
   text-align: center;
 }

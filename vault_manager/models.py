@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from agents.models import Zone, Branch
 from django.urls import reverse
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 
 class MainVault(models.Model):
     class Meta:
@@ -36,7 +36,7 @@ class Account(models.Model):
         return f"{self.name}"
 
 
-# Zone Valut
+# Zone Vault
 class ZoneVault(models.Model):
     class Meta:
         verbose_name_plural = "Zone Vault"
@@ -59,7 +59,6 @@ class ZoneVault(models.Model):
     
 
 class Deposit(models.Model):
-
     deposit_type = models.CharField(max_length=50, choices=[('Opening Cash', 'Opening Cash'), ('Additional Cash', 'Additional Cash')])
     amount = models.FloatField(blank=False, null=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)

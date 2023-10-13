@@ -1,9 +1,9 @@
-{% extends "vault/layout.html" %} 
+{% extends "vault/admin/admin_layout.html" %} 
 {% load humanize %}
 {% block content %}
-<h1>{{ caption }}</h1>
-<table class="table table-striped table-bordered">
-    <thead class="thead-dark">
+<h1 class="text-white text-center fw-bold"><i class="fas fa-user-plus mr-3 fa-2x"></i>{{ caption }}</h1>
+<table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+    <thead class="thead-dark text-center">
     <tr>
       <th scope="col">Zone</th>
       <th scope="col">Branch</th>
@@ -19,14 +19,14 @@
         {% if branch.teller %}
           <td>{{ branch.name }}</t>
         {% if branch.teller.profile.cash %}
-          <td style="color: green">{{ branch.teller.profile.cash|floatformat:2|intcomma }}</td>
+          <td style="color: green">{{ branch.teller.profile.opening_cash|floatformat:2|intcomma }}</td>
         {% else %}
-          <td style="color: red">{{ branch.teller.profile.cash|floatformat:2|intcomma }}</td>
+          <td style="color: red">{{ branch.teller.profile.opening_cash|floatformat:2|intcomma }}</td>
         {% endif %}
         {% if branch.teller.profile.add_cash %}
-          <td style="color: green">{{ branch.teller.profile.add_cash|floatformat:2|intcomma }}</td>
+          <td style="color: green">{{ branch.teller.profile.additional_cash|floatformat:2|intcomma }}</td>
         {% else %}
-          <td style="color: red">{{ branch.teller.profile.add_cash|floatformat:2|intcomma }}</td>
+          <td style="color: red">{{ branch.teller.profile.additional_cash|floatformat:2|intcomma }}</td>
         {% endif %}
       {% else %}
         <td style="color: red">N/A</td>

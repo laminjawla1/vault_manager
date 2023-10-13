@@ -2,11 +2,20 @@
 {% load humanize %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <h1 class="text-center">My Daily Reports Reports</h1>
-    <small><a class="btn btn-primary btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Send New Report</a></small>
-    <table class="table table-striped table-bordered">
-    <thead class="thead-dark">
+<div class="row">
+  <div class="col-md-12">
+    <h1 class="text-center text-white fw-white"><i class="fa fa-folder-open fa-2x mr-3"></i>My Daily Reports</h1>
+    <small>
+      <a class="btn btn-danger fw-bold btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Send New Report</a>
+    </small>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+    <thead class="thead-dark text-center">
         <tr>
+          <th scope="col">Teller</th>
           <th scope="col">Opening Cash</th>
           <th scope="col">Additional Cash</th>
           <th scope="col">Closing Balance</th>
@@ -17,11 +26,8 @@
     <tbody>
         {% for report in reports %}
             <tr>
-                {% if report.status %}
+                <td>{{report.cashier_name}}</td>
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
-                {% else %}
-                  <td><a href="{% url 'update_cashier_reporting' report.id %}">{{report.opening_cash|floatformat:2|intcomma}}</a></td>
-                {% endif %}
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
                 <td>{{report.closing_balance|floatformat:2|intcomma }}</td>
                 <td>{{ report.date|date:"F d, Y" }}</td>
@@ -34,6 +40,8 @@
         {% endfor %}
     </tbody>
     </table>
+  </div>
+</div>
     {% if reports.has_previous %}
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page=1">First</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.previous_page_number }}">Previous</a>
@@ -61,7 +69,7 @@
           <div class="modal-body content-section">
             <form method="POST">
               {% csrf_token %}
-              <fieldset class="form-group">
+              <fieldset class="form-group text-white">
                   {{ form|crispy }}
               </fieldset>
               <div class="modal-footer">
