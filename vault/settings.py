@@ -95,6 +95,9 @@ DATABASES = {
         'PASSWORD': os.environ.get('yonna_vault_db_password'),
         'HOST': os.environ.get('database_host'),
         'PORT': '3306',
+        'OPTIONS': {
+            'init_command': 'SET default_storage_engine=INNODB',
+        }
     }
 }
 
