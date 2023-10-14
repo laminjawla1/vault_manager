@@ -2,9 +2,6 @@
   box-sizing: border-box;
 }
 body {
-  padding-top: 70px;
-  background: #b989ad;
-  color: #333333;
   font-family: 'Poppins', sans-sherif;
   align-items: center;
   justify-content: center;
@@ -14,12 +11,19 @@ body {
 #id_comment {
   height: 15px;
 }
+#side-bar {
+  margin-top: 0.10rem;
+}
 #bar-container {
   background-color:#490549;
   text-align: center;
 }
 #side-bar-container {
   background-color:#490549;
+}
+td, th {
+  align-items: center;
+  text-align: center;
 }
 .current-date, .username, #top-bar, .cat {
   color: #fff;
@@ -29,7 +33,6 @@ body {
 }
 .current-date {
   font-size: small;
-  /* padding-bottom: 5px; */
   margin-top: -20px;
 }
 #top-bar {
@@ -42,8 +45,11 @@ body {
 #cashier-report {
   margin-left: 10px;
 }
-#category1Items {
+#category1Items, #category2Items, #category3Items, #category4Items, #category5Items{
   list-style: none;
+}
+.category:hover {
+  cursor: pointer;
 }
 #supervisor-cashier-report-button {
   margin-bottom: 5px;
@@ -73,7 +79,7 @@ ul {
 }
 
 .content-section {
-  background: #e0bfdb;
+  background-color: #643064;
   padding: 10px 20px;
   border: 1px solid #dddddd;
   border-radius: 10px;
