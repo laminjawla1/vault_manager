@@ -1,18 +1,3 @@
-"""vault URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.urls import path, include
 from agents import views as agent_views
@@ -20,6 +5,8 @@ from vault_manager import views as vault_views
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import messages
+from django.shortcuts import redirect
 
 urlpatterns = [
     path("", vault_views.index, name='index'),
@@ -34,7 +21,7 @@ urlpatterns = [
     path("vault/", include("vault_manager.urls")),
 
     path("login/", auth_views.LoginView.as_view(template_name="agents/login.html"), name="login"),
-    path("logout/", auth_views.LogoutView.as_view(template_name="agents/logout.html"), name="logout"),
+    path("logout/", lambda request: logout_with_message(request), name="logout"),
     path("password_reset/", 
         auth_views.PasswordResetView.as_view(template_name="agents/password_reset.html"), name="password_reset"),
     path("password_reset_complete/", 
@@ -47,6 +34,11 @@ urlpatterns = [
         auth_views.PasswordResetDoneView.as_view(template_name="agents/password_reset_done.html"), name="password_reset_done"),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+def logout_with_message(request):
+    auth_views.LogoutView.as_view(next_page="login")(request)
+    messages.success(request, "You have been successfully logged out.")
+    return redirect("login")  # Redirect to the login page after logout
 
 admin.site.site_header = "Yonna Forex Bureau - Vault Admin"
 admin.site.site_title = "Yonna Vault Admin Portal"

@@ -1,7 +1,8 @@
 from django import forms
 from vault_manager.models import (Account, Deposit, Bank, Withdraw, ZoneVault, BankDeposit,
-                                MainVault, CurrencyTransaction, Currency, Borrow)
+                                MainVault, CurrencyTransaction, Currency, Borrow, Refund)
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 account_choices = [(account.name, account.name) for account in Account.objects.all()]
 class UpdateVaultAccountForm(forms.Form):
@@ -82,3 +83,13 @@ class LedgerFilterForm(forms.Form):
         self.fields['date_to'].widget = forms.DateInput(attrs={'type': 'date'})
     date_from = forms.DateField(label="From", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
     date_to = forms.DateField(label="To", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+
+class RefundAgentForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(RefundAgentForm, self).__init__(*args, **kwargs)
+        self.fields['agent'].queryset = User.objects.filter(
+            Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
+        ).order_by("username")
+    class Meta:
+        model = Refund
+        fields = ['refund_type', 'agent', 'amount']

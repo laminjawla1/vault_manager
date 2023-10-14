@@ -165,16 +165,14 @@ def my_deposits(request):
             messages.success(request, "Agent's account credited successfully 😊")
             form.save()
         return HttpResponseRedirect(reverse('my_deposits'))
-    
-    deposits = Deposit.objects.filter(cashier=True, 
-                                      agent__profile__zone=request.user.profile.zone).all().order_by('-date')
+    zone = request.user.profile.zone
+    deposits = Deposit.objects.filter(cashier=True, agent__profile__zone=zone).order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 30)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
-        request.method = 'GET'
     return render(request, "agents/my_deposits.html", {
         'deposits': paginator, 'form': form, 'current_date': datetime.now()
     })

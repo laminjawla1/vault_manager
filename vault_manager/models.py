@@ -116,7 +116,7 @@ class Withdraw(models.Model):
         return f"{self.withdrawer}"
     
     def get_absolute_url(self):
-        if self.withdrawer.profile.is_supervisor:
+        if self.withdrawer.profile.is_supervisor and not self.withdrawer.is_staff:
             return reverse('my_withdrawals')
         return reverse('withdrawals')
     

@@ -4,7 +4,7 @@
 {% load crispy_forms_tags %}
     <h1 class="text-white text-center fw-bold">Daily Cashier Reports</h1>
       <small>
-        <a class="btn btn-primary btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Return Agent's Account</a>
+        <a class="btn btn-danger fw-bold btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Return Agent's Account</a>
       </small>
     <table class="table table-striped table-bordered table-hover table-dark table-responsive-lg">
         <thead class="thead-dark text-center">
@@ -28,7 +28,7 @@
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
                 <td>{{report.closing_balance|floatformat:2|intcomma }}</td>
-                <td>{{ report.date }}</td>
+                <td>{{ report.date|date:"F d, Y" }}</td>
                 {% if report.status %}
                 <td style="color: green">Approved</td>
                 {% else %}

@@ -52,8 +52,10 @@
         <div class="col-md-2">
             <div class="row">
                 <div class="col-md-6 ml-auto mt-2">
-                    <a class="mr-3" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
-                    <a class="mr-4" href="{% url 'logout' %}"><img src="{% static 'vault/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
+                    <a class="mr-2 text-info" href="{% url 'profile' %}">
+                        <i class="fas fa-user-circle fa-2x" data-toggle="tooltip" data-placement="top" title="{{user.first_name}} {{user.last_name}}"></i>
+                    </a>
+                    <a class="mr-3 text-danger" href="{% url 'logout' %}"><i class="fa fa-sign-out fa-2x" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Sign Out"></i></a>
                 </div>
             </div>
         </div>
@@ -120,9 +122,9 @@
                                 
                             </div>
                             <ul id="category3Items" class="hidden">
-                                <li><a class="nav-link" href="{% url 'bank_deposits' %}">Bank Deposits</a></li>
-                                <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Cashier Deposits</a></li>
-                                <li><a class="nav-link" href="{% url 'supervisor_deposits' %}">Supervisor Deposits</a></li>
+                                <li><a class="nav-link" href="{% url 'bank_deposits' %}">Banks</a></li>
+                                <li><a class="nav-link" href="{% url 'cashier_deposits' %}">Cashiers</a></li>
+                                <li><a class="nav-link" href="{% url 'supervisor_deposits' %}">Supervisors</a></li>
                                 <li><a class="nav-link" href="{% url 'refunds' %}">Refunds</a></li>
                             </ul>
                         </div>
@@ -140,8 +142,8 @@
                                 
                             </div>
                             <ul id="category4Items" class="hidden">
-                                <li><a class="nav-link" href="{% url 'daily_supervisor_reports' %}">Daily Supervisors Reports</a></li>
-                                <li><a class="nav-link" href="{% url 'daily_cashier_reports' %}">Daily Cashiers Reports</a></li>
+                                <li><a class="nav-link" href="{% url 'daily_supervisor_reports' %}">Supervisors</a></li>
+                                <li><a class="nav-link" href="{% url 'daily_cashier_reports' %}">Cashiers</a></li>
                             </ul>
                         </div>
                         {% if user.profile.is_supervisor %}

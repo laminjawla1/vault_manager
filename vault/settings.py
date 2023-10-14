@@ -24,10 +24,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True#str(os.environ.get('DEBUG')) == "1"
-DEBUG = True
+DEBUG = str(os.environ.get('DEBUG')) == "1"
 
-ALLOWED_HOSTS = ['127.0.0.1', 'yonnaforexvault.pythonanywhere.com']
+ALLOWED_HOSTS = ['127.0.0.1', 'yonnaforexvault.pythonanywhere.com', '3a12-102-140-138-51.ngrok-free.app']
 
 
 # Application definition
@@ -81,23 +80,23 @@ WSGI_APPLICATION = "vault.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
 # DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('yonna_vault_db_name'),
-#         'USER': os.environ.get('yonna_vault_db_username'),
-#         'PASSWORD': os.environ.get('yonna_vault_db_password'),
-#         'HOST': os.environ.get('database_host'),
-#         'PORT': '3306',
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('yonna_vault_db_name'),
+        'USER': os.environ.get('yonna_vault_db_username'),
+        'PASSWORD': os.environ.get('yonna_vault_db_password'),
+        'HOST': os.environ.get('database_host'),
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation
@@ -165,3 +164,7 @@ EMAIL_HOST_PASSWORD=os.environ.get("google_password")
 SERVER_EMAIL = EMAIL_HOST_USER
 
 SESSION_EXPIRE_SECONDS = 3600
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+CSRF_TRUSTED_ORIGINS = ['https://3a12-102-140-138-51.ngrok-free.app']

@@ -42,8 +42,13 @@
                 </ul>
                 {% if user.is_authenticated %}
                     <div class="navbar-nav ms-auto">
-                      <a class="nav-item nav-link" href="{% url 'profile' %}"><img src="{{ user.profile.image.url }}" alt="Me" width='25' height='25' class="rounded-circle"></a>
-                      <a class="nav-item nav-link" href="{% url 'logout' %}"><img src="{% static 'vault/images/logout.png' %}" width='25' height='25' class="rounded-circle"></a>
+                      <a class="nav-item nav-link text-info" href="{% url 'profile' %}">
+                        <i class="fas fa-user-circle fa-2x" data-toggle="tooltip" data-placement="top" title="{{user.first_name}} {{user.last_name}}"></i>
+                      </a>
+                      <a class="nav-item nav-link text-danger" href="{% url 'logout' %}">
+                        <i class="fa fa-sign-out fa-2x" aria-hidden="true" data-toggle="tooltip" data-placement="top" title="Sign Out">
+                        </i>
+                      </a>
                     </div>
                 {% endif %}
             </div>

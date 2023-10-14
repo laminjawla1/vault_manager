@@ -17,10 +17,11 @@ from django.utils import timezone
 from django.views.generic import CreateView, UpdateView
 
 from agents.models import Branch, Ledger, Zone
+from django.shortcuts import redirect
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
                     ReturnCashierAccountForm, CashierReportingForm, BankDepositForm, SupervisorReportingForm,
-                    CurrencyTransactionsForm, LoanForm, LedgerFilterForm)
+                    CurrencyTransactionsForm, LoanForm, LedgerFilterForm, RefundAgentForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
 from .utils import gmd
@@ -48,18 +49,18 @@ def dashboard(request):
                         date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
                         supervisor=True, deposit_type="Additional Cash"
                         ).aggregate(Sum('amount')).get('amount__sum') or 0
-        users = User.objects.all().count()
-        zone_cnt = Zone.objects.all().count()
+        users = User.objects.count()
+        zone_cnt = Zone.objects.count()
 
-        page = request.GET.get('page', 1)
+        page = request.GET.get('page')
         zones = Zone.objects.all().order_by('name')
-        paginator = Paginator(zones, 3)
+        paginator = Paginator(zones, 15)
         try:
             paginator = paginator.page(page)
         except:
             paginator = paginator.page(1)
 
-        branches = len(Branch.objects.all())
+        branches = Branch.objects.count()
         t_withdrawals = len(
             Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
         withdrawals_amount = Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
@@ -70,13 +71,16 @@ def dashboard(request):
                                                     date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
         deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
                                                     date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
-        deposits = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).count()
-        s_reports = len(MainVault.objects.all())
-        c_reports =  len(ZoneVault.objects.all())
+        deposits = Deposit.objects.filter(
+            date__year=datetime.now().year,
+            date__month=datetime.now().month,
+            date__day=datetime.now().day,
+            supervisor=True
+        ).count()
         return render(request, "vault/admin/admin_dashboard.html", {
             'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
             'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
-            'deposit_amount': deposit_amount, 'zones': paginator, 's_reports': s_reports, 'c_reports': c_reports, 'loan_amount': borrow_amount,
+            'deposit_amount': deposit_amount, 'zones': paginator, 'loan_amount': borrow_amount,
             't_loans': t_borrows, 'current_date' : datetime.now()
         })
     elif request.user.profile.is_supervisor:
@@ -164,18 +168,34 @@ def refunds(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
+    if request.method == 'POST':
+        form = RefundAgentForm(request.POST)
+        if form.is_valid():
+            if form.instance.refund_type == "Add to Opening Cash":
+                form.instance.agent.profile.balance += form.instance.amount
+                form.instance.agent.profile.opening_cash += form.instance.amount
+            elif form.instance.refund_type == "Add to Additional Cash":
+                form.instance.agent.profile.balance += form.instance.amount
+                form.instance.agent.profile.additional_cash += form.instance.amount
+            elif form.instance.refund_type == 'Deduct from Opening Cash':
+                form.instance.agent.profile.balance -= form.instance.amount
+                form.instance.agent.profile.opening_cash -= form.instance.amount
+            else:
+                form.instance.agent.profile.balance -= form.instance.amount
+                form.instance.agent.profile.additional_cash -= form.instance.amount
+            messages.success(request, "Agent's account refunded successfully")
+            form.instance.agent.profile.save()
+            form.save()
+            return redirect('refunds')
     refunds = Refund.objects.all().order_by('-date')
     page = request.GET.get('page', 1)
-
-    paginator = Paginator(refunds, 8)
-
+    paginator = Paginator(refunds, 30)
     try:
         paginator = paginator.page(page)
     except:
         paginator = paginator.page(1)
-
     return render(request, "vault/refunds.html", {
-        'refunds': paginator, 'current_date' : datetime.now()
+        'refunds': paginator, 'current_date' : datetime.now(), 'form': RefundAgentForm
     })
 
 @login_required
@@ -214,6 +234,7 @@ def accounts(request):
             account.balance -= float(request.POST.get('amount'))
         account.save()
         messages.success(request, 'Account updated successfully')
+        return redirect('accounts')
     return render(request, "vault/vault_accounts.html", {
         'accounts': Account.objects.all().order_by('-date'),
         'form': UpdateVaultAccountForm, 'current_date' : datetime.now()
@@ -270,16 +291,15 @@ def bank_deposits(request):
 def borrows(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    if request.method == 'POST':
+    if request.method == "POST":
         form = LoanForm(request.POST)
         if form.is_valid():
             form.instance.borrower = request.user
             messages.success(request, "Loan request is sent successfully")
             form.save()
             return HttpResponseRedirect(reverse("borrows"))
-    borrows = Borrow.objects.all().order_by('-date')
+    borrows = Borrow.objects.all().order_by('status', '-date')
     page = request.GET.get('page', 1)
-
     paginator = Paginator(borrows, 30)
 
     try:
@@ -355,7 +375,6 @@ def my_borrows(request):
             form = LoanForm(request.POST)
             if form.is_valid():
                 form.instance.borrower = request.user
-                print(form.instance.amount)
                 messages.success(request, "Loan request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_borrows"))
@@ -430,9 +449,9 @@ def reports(request):
 @login_required
 def daily_supervisor_reports(request):
     if request.user.is_staff:
-        reports = MainVault.objects.all().order_by('-date')
+        reports = MainVault.objects.all().order_by('status', '-date')
         page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 8)
+        paginator = Paginator(reports, 25)
 
         try:
             paginator = paginator.page(page)
@@ -457,11 +476,13 @@ def daily_cashier_reports(request):
             form.save()
             messages.success(request, f"{form.instance.reporter}'s daily report have been submitted successfully")
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
+        
+        
     reports = ZoneVault.objects.all().order_by('status', '-date')
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
             reporter__profile__zone=request.user.profile.zone
-        ).all().order_by('-date')
+        ).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(reports, 30)
 
@@ -617,7 +638,7 @@ def disapprove_supervisor_deposit(request):
         deposit.account.save()
         deposit.delete()
         messages.success(request, "Deposit Disapproved")
-    return HttpResponseRedirect(reverse('supervisor_deposits'))
+    return redirect('supervisor_deposits')
 
 @login_required
 def approve_withdrawal_request(request):
@@ -626,7 +647,7 @@ def approve_withdrawal_request(request):
         withdrawal.status = True
         if withdrawal.withdrawer.profile.is_supervisor:
             if not withdrawal.withdrawer.is_staff:
-                withdrawal.withdrawer.profile.add_cash += withdrawal.amount
+                withdrawal.withdrawer.profile.balance += withdrawal.amount
                 withdrawal.withdrawer.profile.additional_cash += withdrawal.amount
                 withdrawal.withdrawer.profile.save()
             else:
@@ -654,11 +675,19 @@ def approve_borrow_request(request):
     if request.method == "POST":
         borrow = get_object_or_404(Borrow, id=request.POST["id"])
         borrow.status = True
-        borrow.account.balance += borrow.amount
+        if borrow.borrower.profile.is_supervisor:
+            if not borrow.borrower.is_staff:
+                borrow.borrower.profile.balance += borrow.amount
+                borrow.borrower.profile.additional_cash += borrow.amount
+                borrow.borrower.profile.save()
+            else:
+                borrow.account.balance += borrow.amount
+        else:
+            borrow.account.balance += borrow.amount
         borrow.save()
         borrow.account.save()
         messages.success(request, "Borrow Accepted")
-    return HttpResponseRedirect(reverse('borrows'))
+    return redirect('borrows')
 
 @login_required
 def disapprove_withdrawal_request(request):
@@ -685,44 +714,6 @@ def disapprove_borrow_request(request):
         borrow.delete()
         messages.success(request, "Borrow Rejected 😔")
         return HttpResponseRedirect(reverse('borrows'))
-
-
-class RefundAgent(LoginRequiredMixin, CreateView):
-    model = Refund
-    template_name = "vault/refund_form.html"
-    fields = ['refund_type', 'agent', 'amount']
-
-    def form_valid(self, form):
-        if form.instance.refund_type == "Add to Opening Cash":
-            form.instance.agent.profile.cash += form.instance.amount
-            form.instance.agent.profile.opening_cash += form.instance.amount
-        elif form.instance.refund_type == "Add to Additional Cash":
-            form.instance.agent.profile.add_cash += form.instance.amount
-            form.instance.agent.profile.additional_cash += form.instance.amount
-        elif form.instance.refund_type == 'Deduct from Opening Cash':
-                form.instance.agent.profile.cash -= form.instance.amount
-                form.instance.agent.profile.opening_cash -= form.instance.amount
-        else:
-                form.instance.agent.profile.add_cash -= form.instance.amount
-                form.instance.agent.profile.additional_cash -= form.instance.amount
-        messages.success(self.request, "Agent's account refunded successfully")
-        form.instance.agent.profile.save()
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        if not self.request.user.is_staff:
-            raise PermissionDenied()
-        context = super(RefundAgent, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Refund'
-        return context
-
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        form.fields['agent'].queryset = User.objects.all().exclude(
-                                        is_staff=True,
-                                        profile__is_supervisor=False
-                                        ).order_by('username')
-        return form
 
 class DepositCash(LoginRequiredMixin, CreateView):
     model = BankDeposit

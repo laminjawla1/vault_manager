@@ -3,7 +3,7 @@ from django.conf.urls.static import static
 from django.urls import path
 from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, my_borrows, bank_deposits,
                     UpdateSupervisorAccount, UpdateCashierAccount, approve_cashier_deposit,
-                    approve_supervisor_deposit, refunds, RefundAgent, ledger, accounts, withdrawals,
+                    approve_supervisor_deposit, refunds, ledger, accounts, withdrawals,
                     UpdateWithdrawCash, approve_withdrawal_request, my_withdrawals, disapprove_withdrawal_request,
                     daily_supervisor_reports, UpdateSupervisorReporting, UpdateCashierReporting, disapprove_supervisor_report,
                     daily_cashier_reports, approve_cashier_report, approve_supervisor_report, generate_cashier_deposit_report, 
@@ -38,7 +38,6 @@ urlpatterns = [
     path("borrows", borrows, name='borrows'),
     path("my_withdrawals", my_withdrawals, name='my_withdrawals'),
     path("my_borrows", my_borrows, name='my_borrows'),
-    path("agents/refund", RefundAgent.as_view(), name='refund'),
     path("deposits/cashiers", cashier_deposits, name='cashier_deposits'),
     path("deposits/supervisors", supervisor_deposits, name='supervisor_deposits'),
     path("dashboard/", dashboard, name="dashboard"),

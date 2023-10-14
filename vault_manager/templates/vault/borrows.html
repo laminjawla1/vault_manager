@@ -89,13 +89,18 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Loan Request..</h1>
+            <h1 class="modal-title fs-5" id="vaultAccountModalLabel">Loan Request...</h1>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body content-section">
             <form method="POST">
               {% csrf_token %}
               <fieldset class="form-group text-white">
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                      {{ form.date|as_crispy_field }}
+                    </div>
+                </div>
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       {{ form.customer_name|as_crispy_field }}
