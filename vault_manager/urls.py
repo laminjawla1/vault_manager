@@ -9,7 +9,7 @@ from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, m
                     daily_cashier_reports, approve_cashier_report, approve_supervisor_report, generate_cashier_deposit_report, 
                     generate_cashier_report, generate_supervisor_report, generate_withdrawal_report, generate_supervisor_deposit_report,
                     UpdateBorrowCash, borrows, approve_borrow_request, disapprove_borrow_request, currency_transactions,
-                    UpdateCurrencyTransact, approve_currency_transaction, disapprove_currency_transaction, ReturnCashierAccount,
+                    UpdateCurrencyTransact, approve_currency_transaction, disapprove_currency_transaction,
                     UpdateReturnCashierAccount, bank_deposits, disapprove_cashier_deposit, disapprove_supervisor_deposit)
 
 urlpatterns = [
@@ -24,7 +24,6 @@ urlpatterns = [
     path("generate_cashier_report/", generate_cashier_report, name="generate_cashier_report"),
     path("generate_supervisor_report/", generate_supervisor_report, name="generate_supervisor_report"),
     path("agents/refunds/", refunds, name='refunds'),
-    path("supervisor/cashier/reports/new", ReturnCashierAccount.as_view(), name='return_cashier_account'),
     path("supervisor/reports/<int:pk>/update", UpdateSupervisorReporting.as_view(), name='update_supervisor_reporting'),
     path("cashier/reports/<int:pk>/update", UpdateCashierReporting.as_view(), name='update_cashier_reporting'),
     path("supervisor/cashier/reports/<int:pk>/update", UpdateReturnCashierAccount.as_view(), name='update_return_cashier_account'),

@@ -603,7 +603,6 @@ def disapprove_supervisor_report(request):
         report.status = True
         report.reporter.profile.opening_cash = 0
         report.reporter.profile.additional_cash = 0
-        report.reporter.profile.has_return = True
 
         account = Account.objects.filter(name="Main Vault").first()
         if account:
@@ -807,44 +806,6 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
         context = super(UpdateSupervisorReporting, self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
-    
-class ReturnCashierAccount(LoginRequiredMixin, CreateView):
-    model = ZoneVault
-    template_name = "vault/daily_report_form.html"
-    fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
-    def form_valid(self, form):
-        if form.instance.reporter.profile.has_return:
-            messages.error(self.request, f"You have already submitted {form.instance.reporter.username}'s report")
-            return HttpResponseRedirect(reverse("reports"))
-        form.instance.branch = form.instance.reporter.profile.branch
-        form.instance.zone = form.instance.reporter.profile.zone
-
-        send_mail(
-            'Daily Cashier Report',
-            f'{self.request.user.first_name} {self.request.user.last_name} sent his daily report', 
-            'yonnatech.g@gmail.com',
-            [os.environ.get('send_email_to', 'ljawla@yonnaforexbureau.com')],
-            fail_silently=False,
-        )
-        messages.success(self.request, "Your daily report have been submitted successfully")
-        return super().form_valid(form)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super(ReturnCashierAccount, self).get_context_data(*args, **kwargs)
-        context['button'] = 'Send'
-        return context
-    
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        if self.request.user.is_staff and not self.request.user.profile.is_supervisor:
-            form.fields['reporter'].queryset = User.objects.filter(profile__is_cashier=True).all()
-        else:
-            form.fields['reporter'].queryset = User.objects.filter(
-                                                profile__is_cashier=True,
-                                                profile__zone=self.request.user.profile.zone
-                                                ).exclude(id=self.request.user.id).order_by('profile__branch__name')
-        return form
-    
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
