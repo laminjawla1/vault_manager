@@ -209,7 +209,8 @@ def ledger(request):
     agents = User.objects.filter(
         Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
     )
-    logs = Ledger.objects.all().order_by('-date')
+    # logs = Ledger.objects.all().order_by('-date')
+    log =  []
     page = request.GET.get('page', 1)
     paginator = Paginator(logs, 25)
     try:
@@ -218,7 +219,7 @@ def ledger(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/ledger.html", {
-        'logs': paginator, 'current_date' : datetime.now(), 'form': LedgerFilterForm,
+        'logs': paginator, 'current_date' : datetime.now(), #'form': LedgerFilterForm,
         'agents': agents
     })
 
