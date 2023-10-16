@@ -21,7 +21,7 @@ from django.shortcuts import redirect
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
                     ReturnCashierAccountForm, CashierReportingForm, BankDepositForm, SupervisorReportingForm,
-                    CurrencyTransactionsForm, LoanForm, LedgerFilterForm, RefundAgentForm)
+                    CurrencyTransactionsForm, LoanForm, RefundAgentForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
                      Deposit, MainVault, Refund, Withdraw, ZoneVault)
 from .utils import gmd
