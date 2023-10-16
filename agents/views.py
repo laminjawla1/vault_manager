@@ -7,7 +7,6 @@ from django.db.models import Sum
 from django.shortcuts import redirect, render
 
 from vault_manager.models import Deposit, Account
-from agents.models import Ledger
 
 from .forms import CreditMyCashierForm, ProfileUpdateForm, UserUpdateForm, ReturnCashierAccountForm
 from .models import Branch, Zone

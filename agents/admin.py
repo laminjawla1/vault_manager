@@ -1,5 +1,5 @@
 from django.contrib import admin
-from agents.models import Profile, Zone, Branch, Ledger
+from agents.models import Profile, Zone, Branch
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as AuthUserAdmin
 
@@ -37,4 +37,4 @@ admin.site.unregister(User)
 admin.site.register(User, AccountsUserAdmin)
 admin.site.register(Branch, BranchAdmin)
 admin.site.register(Zone, ZoneAdmin)
-admin.site.register(Ledger, LedgerAdmin)
+# admin.site.register(Ledger, LedgerAdmin)

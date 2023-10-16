@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView, UpdateView
 
-from agents.models import Branch, Ledger, Zone
+from agents.models import Branch, Zone
 from django.shortcuts import redirect
 
 from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
