@@ -143,12 +143,12 @@ def supervisor_deposits(request):
                 narration = f"{gmd(form.instance.amount)} deposited to {form.instance.agent} as opening cash"
             else:
                 narration = f"{form.instance.amount} deposited to {form.instance.agent} as additional cash"
-            Ledger(
-                agent=form.instance.agent,
-                narration=narration, credit=form.instance.amount,
-                balance=form.instance.agent.profile.balance,
-                added_by=request.user
-            ).save()
+            # Ledger(
+            #     agent=form.instance.agent,
+            #     narration=narration, credit=form.instance.amount,
+            #     balance=form.instance.agent.profile.balance,
+            #     added_by=request.user
+            # ).save()
             messages.success(request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
     deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
