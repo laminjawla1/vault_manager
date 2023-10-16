@@ -76,13 +76,13 @@ class CurrencyTransactionsForm(forms.ModelForm):
         fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
 
 agents_choices = [(user, user) for user in User.objects.all()]
-# class LedgerFilterForm(forms.Form):
-#     def __init__(self, *args, **kwargs):
-#         super(LedgerFilterForm, self).__init__(*args, **kwargs)
-#         self.fields['date_from'].widget = forms.DateInput(attrs={'type': 'date'})
-#         self.fields['date_to'].widget = forms.DateInput(attrs={'type': 'date'})
-#     date_from = forms.DateField(label="From", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
-#     date_to = forms.DateField(label="To", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+class LedgerFilterForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(LedgerFilterForm, self).__init__(*args, **kwargs)
+        self.fields['date_from'].widget = forms.DateInput(attrs={'type': 'date'})
+        self.fields['date_to'].widget = forms.DateInput(attrs={'type': 'date'})
+    date_from = forms.DateField(label="From", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
+    date_to = forms.DateField(label="To", widget=forms.TextInput(attrs={'class': 'form-control'}), required=False)
 
 class RefundAgentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):

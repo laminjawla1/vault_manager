@@ -47,14 +47,14 @@ class Profile(models.Model):
             image.thumbnail(output_size)
             image.save(self.image.path)
 
-# class Ledger(models.Model):
-#     agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name="agents")
-#     added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="added_by", null=True, blank=True)
-#     date = models.DateTimeField(null=False, default=timezone.now)
-#     narration = models.TextField()
-#     debit = models.FloatField(null=False, default=0.0)
-#     credit = models.FloatField(null=False, default=0.0)
-#     balance = models.FloatField(null=False, default=0.0)
+class Ledger(models.Model):
+    agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name="agents")
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="added_by", null=True, blank=True)
+    date = models.DateTimeField(null=False, default=timezone.now)
+    narration = models.TextField()
+    debit = models.FloatField(null=False, default=0.0)
+    credit = models.FloatField(null=False, default=0.0)
+    balance = models.FloatField(null=False, default=0.0)
 
-#     def __str__(self):
-#         return self.agent.username
+    def __str__(self):
+        return self.agent.username
