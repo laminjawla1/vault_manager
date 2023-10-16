@@ -16,6 +16,7 @@ class MainVault(models.Model):
     status = models.BooleanField(default=False)
 
     reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="approved_by", null=True, blank=True)
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, default="")
 
     def __str__(self):
@@ -48,6 +49,7 @@ class ZoneVault(models.Model):
     status = models.BooleanField(default=False)
 
     reporter = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="zone_vault_approval", null=True, blank=True)
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, default="")
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, default="")
 
@@ -64,6 +66,7 @@ class Deposit(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
     date = models.DateTimeField(null=False, default=timezone.now)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="deposit_approval", null=True, blank=True)
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     cashier = models.BooleanField(default=False)
     supervisor = models.BooleanField(default=False)
@@ -84,6 +87,7 @@ class Refund(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.FloatField(blank=False, null=False)
     date = models.DateTimeField(null=False, default=timezone.now)
+    refunded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="refunded_by", null=True, blank=True)
 
     def __str__(self):
         return f"{self.agent}"
@@ -109,6 +113,7 @@ class Withdraw(models.Model):
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     withdrawer = models.ForeignKey(User, on_delete=models.CASCADE)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="withdrawal_approval", null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='cheque_images', null=True, blank=True)
 
@@ -126,6 +131,7 @@ class BankDeposit(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bank_deposit_approval", null=True, blank=True)
     depositor = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField(null=True, blank=True)
 
@@ -148,6 +154,7 @@ class Borrow(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="borrow_approval", null=True, blank=True)
     borrower = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -178,6 +185,7 @@ class CurrencyTransaction(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
+    approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="current_approval", null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
 
     def __str__(self):

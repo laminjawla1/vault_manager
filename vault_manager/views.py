@@ -541,53 +541,59 @@ class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 def approve_cashier_deposit(request):
     if request.method == "POST":
         deposit = get_object_or_404(Deposit, id=request.POST["id"])
-        deposit.status = True
-        if deposit.deposit_type == "Opening Cash":
-            deposit.agent.profile.opening_cash = deposit.amount
-            deposit.agent.profile.closing_balance = 0
+        if not deposit.status:
+            deposit.status = True
+            deposit.approved_by = request.user
+            if deposit.deposit_type == "Opening Cash":
+                deposit.agent.profile.opening_cash = deposit.amount
+                deposit.agent.profile.closing_balance = 0
+            else:
+                deposit.agent.profile.additional_cash += deposit.amount
+            deposit.agent.profile.balance += deposit.amount
+            deposit.agent.profile.save()
+            deposit.save()
+            messages.success(request, "Deposit Approved")
         else:
-            deposit.agent.profile.additional_cash += deposit.amount
-        deposit.agent.profile.balance += deposit.amount
-        deposit.agent.profile.save()
-        deposit.save()
-        messages.success(request, "Deposit Approved")
+            messages.error(request, "This deposit is already approved")
     return HttpResponseRedirect(reverse('cashier_deposits'))
     
 @login_required
 def approve_cashier_report(request):
     if request.method == "POST":
         report = get_object_or_404(ZoneVault, id=request.POST["id"])
-        report.status = True
-        report.reporter.profile.opening_cash = 0
-        report.reporter.profile.additional_cash = 0
-        report.reporter.profile.balance = 0
-        report.reporter.profile.closing_balance = report.closing_balance
-        report.reporter.profile.save()
-        report.save()
-        messages.success(request, "Report Approved")
+        if not report.status:
+            report.status = True
+            report.reporter.profile.opening_cash = 0
+            report.reporter.profile.additional_cash = 0
+            report.reporter.profile.balance = 0
+            report.reporter.profile.closing_balance = report.closing_balance
+            report.reporter.profile.save()
+            report.save()
+            messages.success(request, "Report Approved")
+        else:
+            messages.error(request, "This report is already approved")
     return HttpResponseRedirect(reverse('daily_cashier_reports'))
     
 @login_required
 def approve_supervisor_report(request):
     if request.method == "POST":
         report = get_object_or_404(MainVault, id=request.POST["id"])
-        report.status = True
-        report.reporter.profile.opening_cash = 0
-        report.reporter.profile.additional_cash = 0
-        report.reporter.profile.has_return = True
+        if not report.status:
+            report.status = True
+            report.reporter.profile.opening_cash = 0
+            report.reporter.profile.additional_cash = 0
+            report.reporter.profile.balance = 0
 
-        account = Account.objects.filter(name="Main Vault").first()
-        if account:
+            account = Account.objects.filter(name="Main Vault").first()
             account.balance += report.closing_balance
             account.save()
+
+            report.reporter.profile.closing_balance = report.closing_balance
+            report.reporter.profile.save()
+            report.save()
+            messages.success(request, "Report Approved")
         else:
-            messages.error(request, "Couldn't find the Main Vault Account")
-            return HttpResponseRedirect("accounts")
-        
-        report.reporter.profile.closing_balance = report.closing_balance
-        report.reporter.profile.save()
-        report.save()
-        messages.success(request, "Report Approved")
+            messages.error(request, "This report is already approved")
     return HttpResponseRedirect(reverse('daily_supervisor_reports'))
     
 @login_required
