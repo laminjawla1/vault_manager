@@ -136,13 +136,6 @@ def supervisor_deposits(request):
 
     # Checking for filtering or new deposit requests
     if request.method == 'POST':
-        searched = Deposit.objects.filter(supervisor=True)
-        if request.POST.get('zone'):
-            searched = searched.filter(agent__profile__zone__name__icontains=request.POST.get('zone'))
-        if request.POST.get('from_date'):
-            searched = searched.filter(date__gte=request.POST.get('from_date'))
-        if request.POST.get('to_date'):
-            searched = searched.filter(date__lte=request.POST.get('to_date'))
         form  = CreditSupervisorAccountForm(request.POST)
         if form.is_valid():
             if form.instance.account.balance - form.instance.amount < 0:
@@ -164,9 +157,20 @@ def supervisor_deposits(request):
             # ).save()
             messages.success(request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
-        else:
-            deposits = searched
+        
+    searched = Deposit.objects.filter(supervisor=True)
+    zone = request.GET.get('zone')
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
 
+    if zone:
+        searched = searched.filter(agent__profile__zone__name__icontains=zone)
+    if from_date:
+        searched = searched.filter(date__gte=from_date)
+    if to_date:
+        searched = searched.filter(date__lte=to_date)
+
+    deposits = searched
     deposits = deposits.order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 25)
@@ -227,7 +231,7 @@ def ledger(request):
         Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
     )
     # logs = Ledger.objects.all().order_by('-date')
-    log =  []
+    logs =  []
     page = request.GET.get('page', 1)
     paginator = Paginator(logs, 25)
     try:
