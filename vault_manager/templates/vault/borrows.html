@@ -33,7 +33,7 @@
                 {% else %}
                   <td><a href="{% url 'update_borrow_request' borrow.id %}">{{ borrow.borrower.first_name}} {{ borrow.borrower.last_name}}</a></td>
                 {% endif %}
-                <td>{{ borrow.customer_name }}</td>
+                <td>{{ borrow.customer_name|slice:"16" }}</td>
                 <td>{{ borrow.address }}</td>
                 <td>{{ borrow.phone }}</td>
                 <td>{{ borrow.amount|floatformat:2|intcomma }}</td>
