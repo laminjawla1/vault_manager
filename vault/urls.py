@@ -39,7 +39,3 @@ def logout_with_message(request):
     auth_views.LogoutView.as_view(next_page="login")(request)
     messages.success(request, "You have been successfully logged out.")
     return redirect("login")  # Redirect to the login page after logout
-
-admin.site.site_header = "Yonna Forex Bureau - Vault Admin"
-admin.site.site_title = "Yonna Vault Admin Portal"
-admin.site.index_title = "Welcome To Yonna Vault Admin Portal"

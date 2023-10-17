@@ -50,11 +50,16 @@ class Profile(models.Model):
 class Ledger(models.Model):
     agent = models.ForeignKey(User, on_delete=models.CASCADE, related_name="agents")
     added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="added_by", null=True, blank=True)
-    date = models.DateTimeField(null=False, default=timezone.now)
     narration = models.TextField()
     debit = models.FloatField(null=False, default=0.0)
     credit = models.FloatField(null=False, default=0.0)
     balance = models.FloatField(null=False, default=0.0)
+
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.agent.username

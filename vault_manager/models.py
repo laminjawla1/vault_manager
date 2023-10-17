@@ -9,7 +9,6 @@ class MainVault(models.Model):
     class Meta:
         verbose_name_plural = "Main Vault"
 
-    date = models.DateTimeField(null=False, default=timezone.now)
     opening_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
     additional_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
     closing_balance = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)])
@@ -18,6 +17,11 @@ class MainVault(models.Model):
     reporter = models.ForeignKey(User, on_delete=models.CASCADE)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="approved_by", null=True, blank=True)
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, default="")
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.reporter.username}"
@@ -27,12 +31,15 @@ class MainVault(models.Model):
 
 
 class Account(models.Model):
-
-    date = models.DateTimeField(null=False, default=timezone.now)
     name = models.CharField(max_length=100, unique=True, null=False)
     owner = models.CharField(max_length=100, null=False)
     balance = models.FloatField(null=False, default=0)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
 
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"{self.name}"
 
@@ -42,7 +49,6 @@ class ZoneVault(models.Model):
     class Meta:
         verbose_name_plural = "Zone Vault"
     cashier_name = models.CharField(max_length=50)
-    date = models.DateTimeField(null=False, default=timezone.now)
     opening_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
     additional_cash = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
     closing_balance = models.FloatField(blank=False, null=False,validators=[MinValueValidator(0)], default=0)
@@ -52,7 +58,12 @@ class ZoneVault(models.Model):
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="zone_vault_approval", null=True, blank=True)
     zone = models.ForeignKey(Zone, on_delete=models.CASCADE, default="")
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, default="")
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
 
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
+        
     def __str__(self) -> str:
         return f"Opening cash: {self.opening_cash}"
     
@@ -65,11 +76,15 @@ class Deposit(models.Model):
     amount = models.FloatField(blank=False, null=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     status = models.BooleanField(default=False)
-    date = models.DateTimeField(null=False, default=timezone.now)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="deposit_approval", null=True, blank=True)
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     cashier = models.BooleanField(default=False)
     supervisor = models.BooleanField(default=False)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.agent}"
@@ -86,9 +101,13 @@ class Refund(models.Model):
                                                         ('Deduct from Additional Cash', 'Deduct from Additional Cash')])
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.FloatField(blank=False, null=False)
-    date = models.DateTimeField(null=False, default=timezone.now)
     refunded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="refunded_by", null=True, blank=True)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
 
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"{self.agent}"
     
@@ -97,7 +116,11 @@ class Refund(models.Model):
 
 class Bank(models.Model):
     name = models.CharField(max_length=50)
-    date = models.DateTimeField(null=False, default=timezone.now)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -110,13 +133,17 @@ class Withdraw(models.Model):
     cheque_number = models.CharField(max_length=100)
     amount = models.FloatField(blank=False, null=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     withdrawer = models.ForeignKey(User, on_delete=models.CASCADE)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="withdrawal_approval", null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='cheque_images', null=True, blank=True)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
 
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return f"{self.withdrawer}"
     
@@ -129,11 +156,15 @@ class BankDeposit(models.Model):
     bank = models.ForeignKey(Bank, on_delete=models.CASCADE)
     amount = models.FloatField(blank=False, null=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="bank_deposit_approval", null=True, blank=True)
     depositor = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField(null=True, blank=True)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.depositor}"
@@ -152,10 +183,14 @@ class Borrow(models.Model):
     phone = models.CharField(max_length=20, default="")
     amount = models.FloatField(blank=False, null=False)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="borrow_approval", null=True, blank=True)
     borrower = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
+
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.borrower}"
@@ -183,11 +218,15 @@ class CurrencyTransaction(models.Model):
     rate = models.FloatField()
     total_amount = models.FloatField()
     agent = models.ForeignKey(User, on_delete=models.CASCADE)
-    date = models.DateTimeField(null=False, default=timezone.now)
     status = models.BooleanField(default=False)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="current_approval", null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    date = models.DateTimeField(null=False, default=timezone.now, blank=True)
 
+    def save(self, *args, **kwargs):
+        self.date = timezone.localtime(timezone.now())
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.customer_name
     

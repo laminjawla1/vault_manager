@@ -127,9 +127,22 @@ def cashier_deposits(request):
 
 @login_required
 def supervisor_deposits(request):
+    # Authorization
     if not request.user.is_staff:
         raise PermissionDenied()
+    
+    # get today deposits
+    deposits = Deposit.objects.filter(supervisor=True, date__date=timezone.now()).all()
+
+    # Checking for filtering or new deposit requests
     if request.method == 'POST':
+        searched = Deposit.objects.filter(supervisor=True)
+        if request.POST.get('zone'):
+            searched = searched.filter(agent__profile__zone__name__icontains=request.POST.get('zone'))
+        if request.POST.get('from_date'):
+            searched = searched.filter(date__gte=request.POST.get('from_date'))
+        if request.POST.get('to_date'):
+            searched = searched.filter(date__lte=request.POST.get('to_date'))
         form  = CreditSupervisorAccountForm(request.POST)
         if form.is_valid():
             if form.instance.account.balance - form.instance.amount < 0:
@@ -151,7 +164,10 @@ def supervisor_deposits(request):
             # ).save()
             messages.success(request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
-    deposits = Deposit.objects.filter(supervisor=True).all().order_by('status', '-date')
+        else:
+            deposits = searched
+
+    deposits = deposits.order_by('status', '-date')
     page = request.GET.get('page', 1)
     paginator = Paginator(deposits, 25)
     try:
@@ -160,7 +176,8 @@ def supervisor_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/admin/supervisor_deposits.html", {
-        'deposits': paginator, 'form': CreditSupervisorAccountForm, 'current_date': datetime.now()
+        'deposits': paginator, 'form': CreditSupervisorAccountForm, 'current_date': datetime.now(),
+        'zones': Zone.objects.all(),
     })
 
 @login_required
@@ -567,6 +584,7 @@ def approve_cashier_report(request):
             report.reporter.profile.opening_cash = 0
             report.reporter.profile.additional_cash = 0
             report.reporter.profile.balance = 0
+            report.approved_by = request.user
             report.reporter.profile.closing_balance = report.closing_balance
             report.reporter.profile.save()
             report.save()
@@ -584,6 +602,7 @@ def approve_supervisor_report(request):
             report.reporter.profile.opening_cash = 0
             report.reporter.profile.additional_cash = 0
             report.reporter.profile.balance = 0
+            report.approved_by = request.user
 
             account = Account.objects.filter(name="Main Vault").first()
             account.balance += report.closing_balance
@@ -623,17 +642,22 @@ def disapprove_supervisor_report(request):
 def approve_supervisor_deposit(request):
     if request.method == "POST":
         deposit = get_object_or_404(Deposit, id=request.POST["id"])
-        deposit.status = True
-        if deposit.deposit_type == "Opening Cash":
-            deposit.agent.profile.opening_cash = deposit.amount
-            deposit.agent.profile.balance += deposit.amount
-            deposit.agent.profile.closing_balance = 0
+        if not deposit.status:
+            deposit.status = True
+            deposit.approved_by = request.user
+            if deposit.deposit_type == "Opening Cash":
+                deposit.agent.profile.opening_cash = deposit.amount
+                deposit.agent.profile.balance += deposit.amount
+                deposit.agent.profile.closing_balance = 0
+                deposit.approved_by = request.user
+            else:
+                deposit.agent.profile.additional_cash += deposit.amount
+                deposit.agent.profile.balance += deposit.amount
+            deposit.agent.profile.save()
+            deposit.save()
+            messages.success(request, "Deposit Approved")
         else:
-            deposit.agent.profile.additional_cash += deposit.amount
-            deposit.agent.profile.balance += deposit.amount
-        deposit.agent.profile.save()
-        deposit.save()
-        messages.success(request, "Deposit Approved")
+            messages.error(request, "This deposit is already approved")
     return HttpResponseRedirect(reverse('supervisor_deposits'))
 
 @login_required
@@ -650,49 +674,60 @@ def disapprove_supervisor_deposit(request):
 def approve_withdrawal_request(request):
     if request.method == "POST":
         withdrawal = get_object_or_404(Withdraw, id=request.POST["id"])
-        withdrawal.status = True
-        if withdrawal.withdrawer.profile.is_supervisor:
-            if not withdrawal.withdrawer.is_staff:
-                withdrawal.withdrawer.profile.balance += withdrawal.amount
-                withdrawal.withdrawer.profile.additional_cash += withdrawal.amount
-                withdrawal.withdrawer.profile.save()
+        if not withdrawal.status:
+            withdrawal.status = True
+            if withdrawal.withdrawer.profile.is_supervisor:
+                if not withdrawal.withdrawer.is_staff:
+                    withdrawal.withdrawer.profile.balance += withdrawal.amount
+                    withdrawal.withdrawer.profile.additional_cash += withdrawal.amount
+                    withdrawal.withdrawer.profile.save()
+                else:
+                    withdrawal.account.balance += withdrawal.amount
             else:
                 withdrawal.account.balance += withdrawal.amount
+            withdrawal.save()
+            withdrawal.account.save()
+            messages.success(request, "Withdrawal Accepted")
         else:
-            withdrawal.account.balance += withdrawal.amount
-        withdrawal.save()
-        withdrawal.account.save()
-        messages.success(request, "Withdrawal Accepted")
+            messages.error(request, "This request is already in approved")
     return HttpResponseRedirect(reverse('withdrawals'))
 
 @login_required
 def approve_deposit_request(request):
     if request.method == "POST":
         deposit = get_object_or_404(BankDeposit, id=request.POST["id"])
-        deposit.status = True
-        deposit.account.balance -= deposit.amount
-        deposit.save()
-        deposit.account.save()
-        messages.success(request, "Deposit Accepted")
+        if not deposit.status:
+            deposit.status = True
+            deposit.approved_by = request.user
+            deposit.account.balance -= deposit.amount
+            deposit.save()
+            deposit.account.save()
+            messages.success(request, "Deposit Accepted")
+        else:
+            messages.error(request, "This request is already in approved")
     return HttpResponseRedirect(reverse('bank_deposits'))
 
 @login_required
 def approve_borrow_request(request):
     if request.method == "POST":
         borrow = get_object_or_404(Borrow, id=request.POST["id"])
-        borrow.status = True
-        if borrow.borrower.profile.is_supervisor:
-            if not borrow.borrower.is_staff:
-                borrow.borrower.profile.balance += borrow.amount
-                borrow.borrower.profile.additional_cash += borrow.amount
-                borrow.borrower.profile.save()
+        if not borrow.status:
+            borrow.status = True
+            borrow.approved_by = request.user
+            if borrow.borrower.profile.is_supervisor:
+                if not borrow.borrower.is_staff:
+                    borrow.borrower.profile.balance += borrow.amount
+                    borrow.borrower.profile.additional_cash += borrow.amount
+                    borrow.borrower.profile.save()
+                else:
+                    borrow.account.balance += borrow.amount
             else:
                 borrow.account.balance += borrow.amount
+            borrow.save()
+            borrow.account.save()
+            messages.success(request, "Borrow Accepted")
         else:
-            borrow.account.balance += borrow.amount
-        borrow.save()
-        borrow.account.save()
-        messages.success(request, "Borrow Accepted")
+            messages.error(request, "This request is already in approved")
     return redirect('borrows')
 
 @login_required
