@@ -5,13 +5,13 @@
 <div class="row">
   <div class="col-md-12 mx-auto">
           <form method="GET">
-              <fieldset class="form-group text-white">
+              <fieldset class="form-group text-white text-center fw-bold">
                   <legend class="border-bottom text-white fw-bold">
                     <h1 class="text-white text-center fw-bold"><i class="fa fa-bank fa-2x mr-2"></i>Supervisor Deposits</h1>
                   </legend>
                   <div class="form-row mb-3">
                       <div class="form-group col-md-3">
-                        <label for="">Zones</label>
+                        <label for="" class="text-center">Zones</label>
                         <input type="search" list="zone_list" placeholder="Search Agent" class="form-control" name="zone">
                         <datalist id="zone_list">
                           {% for zone in zones %}
@@ -27,8 +27,8 @@
                         <label for="to_date">To</label>
                         <input type="date" name="to_date" id="to_date" class="form-control">
                       </div>
-                      <div class="form-group col-md-3">
-                        <button class="btn btn-primary btn-block" type="submit" style="margin-top: 1.94rem;">Filter</button>
+                      <div class="form-group col-md-3 text-center">
+                        <button class="btn btn-success btn-block fw-bold" type="submit" style="margin-top: 1.94rem;">Filter</button>
                       </div>
                   </div>
               </fieldset>
@@ -65,9 +65,9 @@
                 <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
                 <td>{{ deposit.deposit_type }}</td>
                 {% if deposit.status %}
-                    <td style="color: green">Approved</td>
+                    <td><i class="fa fa-check text-success"></i></td>
                 {% else %}
-                    <td style="color: red">Pending</td>
+                <td><i class="fa fa-ban text-danger"></i></td>
                 {% endif %}
                 <td>{{ deposit.date }}</td>
                 {% if not deposit.status %}

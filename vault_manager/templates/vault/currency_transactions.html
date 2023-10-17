@@ -43,9 +43,9 @@
                 <td>{{ transaction.rate|floatformat:2|intcomma }}</td>
                 <td>{{ transaction.total_amount|floatformat:2|intcomma }}</td>
                 {% if transaction.status %}
-                    <td style="color: green">Approved</td>
+                    <td><i class="fa fa-check text-success"></i></td>
                 {% else %}
-                    <td style="color: red">Pending</td>
+                <td><i class="fa fa-ban text-danger"></i></td>
                 {% endif %}
                 <td>{{ transaction.date|date:"F d, Y" }}</td>
                 {% if not user.profile.is_supervisor %}
