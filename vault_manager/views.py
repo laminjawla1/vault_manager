@@ -131,9 +131,6 @@ def supervisor_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     
-    # get today deposits
-    deposits = Deposit.objects.filter(supervisor=True, date__date=timezone.now()).all()
-
     # Checking for filtering or new deposit requests
     if request.method == 'POST':
         form  = CreditSupervisorAccountForm(request.POST)
@@ -145,35 +142,24 @@ def supervisor_deposits(request):
             form.instance.account.balance -= form.instance.amount
             form.instance.account.save()
             form.save()
-            if form.instance.deposit_type == "Opening Balance":
-                narration = f"{gmd(form.instance.amount)} deposited to {form.instance.agent} as opening cash"
-            else:
-                narration = f"{form.instance.amount} deposited to {form.instance.agent} as additional cash"
-            # Ledger(
-            #     agent=form.instance.agent,
-            #     narration=narration, credit=form.instance.amount,
-            #     balance=form.instance.agent.profile.balance,
-            #     added_by=request.user
-            # ).save()
             messages.success(request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
         
-    searched = Deposit.objects.filter(supervisor=True)
+    deposits = Deposit.objects.filter(supervisor=True)
     zone = request.GET.get('zone')
     from_date = request.GET.get('from_date')
     to_date = request.GET.get('to_date')
 
     if zone:
-        searched = searched.filter(agent__profile__zone__name__icontains=zone)
+        deposits = deposits.filter(agent__profile__zone__name__icontains=zone)
     if from_date:
-        searched = searched.filter(date__gte=from_date)
+        deposits = deposits.filter(date__gte=from_date)
     if to_date:
-        searched = searched.filter(date__lte=to_date)
+        deposits = deposits.filter(date__lte=to_date)
 
-    deposits = searched
     deposits = deposits.order_by('status', '-date')
     page = request.GET.get('page', 1)
-    paginator = Paginator(deposits, 25)
+    paginator = Paginator(deposits, 30)
     try:
         paginator = paginator.page(page)
     except:

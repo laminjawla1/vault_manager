@@ -39,9 +39,9 @@
                 <td>{{ borrow.amount|floatformat:2|intcomma }}</td>
                 <td>{{ borrow.account }}</td>
                 {% if borrow.status %}
-                    <td style="color: green">Approved</td>
+                    <td><i class="fa fa-check text-success"></i></td>
                 {% else %}
-                    <td style="color: red">Pending</td>
+                <td><i class="fa fa-ban text-danger"></i></td>
                 {% endif %}
                 <td>{{ borrow.date|date:"F d, Y" }}</td>
                 {% if not user.profile.is_staff %}
