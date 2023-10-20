@@ -137,6 +137,7 @@ def supervisor_deposits(request):
         if form.is_valid():
             if form.instance.account.balance - form.instance.amount < 0:
                 messages.error(request, "Insufficient Fund 😥")
+                print("What's happening")
                 return HttpResponseRedirect(reverse('supervisor_deposits'))
             form.instance.supervisor = True
             form.instance.account.balance -= form.instance.amount

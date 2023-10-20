@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="{% static 'vault/js/popper.min1.js' %}"></script>
     <script src="{% static 'vault/js/bootstrap.min1.js' %}"></script>
-    <script src="{% static 'vault/js/script.js' %}"></script>
     <link rel="stylesheet" href="{% static 'vault/css/styles.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
@@ -34,7 +33,7 @@
     {% if title %}
         <title>Yonna Vault - {{ title }}</title>
     {% else %}
-        <title>Yonna Vault</title>
+    <title>Yonna Vault</title>
     {% endif %}
 </head>
 <body style="background-color: rgb(150, 156, 150);">
@@ -172,7 +171,7 @@
                                         <i class="fas fa-dollar-sign"></i>
                                         <span class="text-success fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
                                     </a>
-                                {% else %}
+                                    {% else %}
                                     <a class="nav-item nav-link">
                                         <i class="fas fa-dollar-sign"></i>
                                         <span class="text-danger fw-bold">Balance: {{ user.profile.balance|floatformat:2|intcomma }}</span>
@@ -229,16 +228,16 @@
                             </ul>
                         </div>
                     </div>
-        {% endif %}
+                    {% endif %}
         </div>
         <div class="col-md-10">
             <div class="row">
                 <div class="col-md-12">
-                  {% if messages %}
+                    {% if messages %}
                     {% for message in messages %}
-                      {% if message.tags == "error" %}
+                    {% if message.tags == "error" %}
                           <div class="alert alert-danger">
-                          {{ message }}
+                              {{ message }}
                           </div>
                       {% else %}
                           <div class="alert alert-{{ message.tags }}">
@@ -256,8 +255,9 @@
     
 {% endif %}
 
-  <script src="{% static 'vault/js/jquery-3.2.1.slim.min.js' %}"></script>
+<script src="{% static 'vault/js/jquery-3.2.1.slim.min.js' %}"></script>
   <script src="{% static 'vault/js/popper.min.js' %}"></script>
   <script src="{% static 'vault/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'vault/js/script.js' %}"></script>
 </body>
 </html>
