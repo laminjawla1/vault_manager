@@ -103,7 +103,7 @@
                   <td><a href="{% url 'update_supervisor_deposit' deposit.id %}">{{ deposit.agent.profile.zone }}</a></td>
                 {% endif %}
                 <td>{{ deposit.agent.first_name }} {{ deposit.agent.last_name }}</td>
-                <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
+                <td class="amount">{{ deposit.amount|floatformat:2|intcomma }}</td>
                 <td>{{ deposit.deposit_type }}</td>
                 {% if deposit.status %}
                     <td class="text-success fw-bold">Approved <i class="fa fa-check text-success"></i></td>
@@ -130,7 +130,11 @@
                 {% endif %}
             </tr>
         {% endfor %}
-    </tbody>
+      </tbody>
+      <!-- <tr>
+        <td class="text-danger fw-bold" colspan="2">TOTAL</td>
+        <td class="text-danger fw-bold" id="total-amount" colspan="5"></td>
+      </tr> -->
     </table>
   </div>
 </div>

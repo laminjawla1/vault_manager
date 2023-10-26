@@ -311,55 +311,69 @@
                     });
                 },
                 // Buttons
-            "dom": "lBfrtip",
-            "buttons": [
-                {
-                    "extend": "copy",
-                    "text": '<i class="fas fa-clone"></i>',
-                    "className": "btn btn-success",
-                    "titleAttr": "Copy to clipboard",
-                    "title": "Supervisor Deposits"
-                },
-                {
-                    "extend": "excel",
-                    "text": '<i class="fas fa-file-excel"></i>',
-                    "className": "btn btn-danger",
-                    "titleAttr": "Export to Excel",
-                    "title": "Supervisor Deposits"
-                },
-                {
-                    "extend": "print",
-                    "text": '<i class="fas fa-print"></i>',
-                    "className": "btn btn-warning",
-                    "titleAttr": "Print Table",
-                    "title": "Supervisor Deposits",
-                    "customize": function (win) {
-                        $(win.document.body).css("font-size", "10pt");
-                        $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
-    
-                    }
-                },
-                {
-                    "extend": "pdf",
-                    "text": '<i class="fas fa-file-pdf"></i>',
-                    "className": "btn btn-info",
-                    "titleAttr": "Export to PDF",
-                    "title": "Supervisor Deposits",
-                    "tableHeader" : {
-                        "alignment": "center",
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Supervisor Deposits"
                     },
-                    "customize" : function (doc) {
-                        doc.styles.tableHeader.alignment = "center";
-                        doc.styles.tableHeader.fontSize = 10;
-                        doc.styles.tableBodyOdd.alignment = "center";
-                        doc.styles.tableBodyEven.alignment = "center";
-                        doc.defaultStyle.fontSize = 6;
-                        doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
-                    }
-                },
-            ]
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Supervisor Deposits"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Supervisor Deposits",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Supervisor Deposits",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
             });
         });
+            // let table = document.getElementById("supervisor_deposits");
+            // let totalPrice = 0, priceCell, priceValue;
+            // for (var i = 1; i < table.rows.length - 1; i++) {
+            //     priceCell = table.rows[i].cells[2].textContent.replace(/,/g, "")
+            //     priceValue = parseFloat(priceCell);
+            //     if (!isNaN(priceValue)) {
+            //         totalPrice += priceValue;
+            //     }
+            // }
+            // var formattedCurrency = new Intl.NumberFormat(undefined, {
+            //     style: "currency",
+            //     currency: "GMD" // Change to the desired currency code (e.g., "EUR", "JPY", "GBP")
+            // }).format(totalPrice);
+            // document.getElementById("total-amount").innerHTML = formattedCurrency;
     </script>
 
 </body>
