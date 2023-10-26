@@ -2,12 +2,50 @@
 {% load crispy_forms_tags %}
 {% load humanize %}
 {% block content %}
+<style>
+  .page-item.active .page-link {
+    columns: #fff;
+    background-color: #6c757d;
+    border: 1px solid #6c757d;
+  }
+  .pagination > li > a {
+    color: #111;
+  }
+  .pagination > li > a:focus,
+  .pagination > li > a:hover,
+  .pagination > span > a:focus,
+  .pagination > span > a:hover {
+    color: #111;
+    background-color: #d3d3d3;
+    border: 1px solid #6c757d;
+    box-shadow: none;
+  }
+  .dataTables_info {
+    color: #333;
+    font-weight: bold;
+    float: left;
+    margin-top: -15px !important;
+  }
+  .dataTables_paginate {
+    margin-top: -5px !important;
+    float: right;
+  }
+  .dataTables_filter, .dataTables_length, btn-credit {
+    float: right;
+    margin-top: 1px !important;
+    margin-right: 10px !important;
+  }
+  thead input {
+    width: 100%;
+    text-align: center;
+  }
+</style>
 <div class="row">
   <div class="col-md-12 mx-auto">
-          <form method="GET">
+    <h1 class="text-white text-center fw-bold"><i class="fa fa-bank fa-1x mr-2"></i>Supervisor Deposits</h1>
+          {% comment %} <form method="GET">
               <fieldset class="form-group text-white text-center fw-bold">
                   <legend class="border-bottom text-white fw-bold">
-                    <h1 class="text-white text-center fw-bold"><i class="fa fa-bank fa-2x mr-2"></i>Supervisor Deposits</h1>
                   </legend>
                   <div class="form-row mb-3">
                       <div class="form-group col-md-3">
@@ -32,25 +70,28 @@
                       </div>
                   </div>
               </fieldset>
-          </form>
+          </form> {% endcomment %}
   </div>
 </div>
-<div class="row" style="margin-top: -2.85rem">
-  <div class="col-md-12">
-    <small><a class="btn btn-danger btn-block btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Credit Supervisor</a></small>
+<div class="row" >
+  <div class="col-md-12 text-center mb-1">
+    <small>
+      <a class="btn btn-success btn-block btn-sm fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Credit Supervisor</a>
+    </small>
   </div>
 </div>
 <div class="row">
   <div class="col-md-12">
-    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg" id="supervisor_deposits">
     <thead class="thead-dark text-center">
         <tr>
-        <th scope="col">Zone</th>
-        <th scope="col">Supervisor</th>
-        <th scope="col">Amount</th>
-        <th scope="col">Type</th>
-        <th scope="col">Status</th>
-        <th scope="col">Date</th>
+        <th scope="col" style="width: 14%;">Zone</th>
+        <th scope="col" style="width: 14%;">Supervisor</th>
+        <th scope="col" style="width: 14%;">Amount</th>
+        <th scope="col" style="width: 14%;">Type</th>
+        <th scope="col"style= "width: 14%;">Status</th>
+        <th scope="col" style="width: 14%;">Approved By</th>
+        <th scope="col" style="width: 16%;">Date</th>
         </tr>
     </thead>
     <tbody>
@@ -65,10 +106,11 @@
                 <td>{{ deposit.amount|floatformat:2|intcomma }}</td>
                 <td>{{ deposit.deposit_type }}</td>
                 {% if deposit.status %}
-                    <td><i class="fa fa-check text-success"></i></td>
+                    <td class="text-success fw-bold">Approved <i class="fa fa-check text-success"></i></td>
                 {% else %}
-                <td><i class="fa fa-ban text-danger"></i></td>
+                <td class="text-danger fw-bold">Pending <i class="fa fa-ban text-danger"></i></td>
                 {% endif %}
+                <td>{{deposit.approved_by}}</td>
                 <td>{{ deposit.date }}</td>
                 {% if not deposit.status %}
                     <td>
@@ -92,7 +134,7 @@
     </table>
   </div>
 </div>
-    {% if deposits.has_previous %}
+    {% comment %} {% if deposits.has_previous %}
       <a class="btn btn-outline-info mb-4"href="{% url 'supervisor_deposits' %}?page=1&zone={{request.GET.zone}}&from_date={{request.GET.from_date}}&to_date={{request.GET.to_date}}">First</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'supervisor_deposits' %}?page={{ deposits.previous_page_number }}&zone={{request.GET.zone}}&from_date={{request.GET.from_date}}&to_date={{request.GET.to_date}}">Previous</a>
     {% endif %}
@@ -108,7 +150,7 @@
     {% if deposits.has_next %}
       <a class="btn btn-outline-info mb-4" href="{% url 'supervisor_deposits' %}?page={{ deposits.next_page_number }}&zone={{request.GET.zone}}&from_date={{request.GET.from_date}}&to_date={{request.GET.to_date}}">Next</a>
       <a class="btn btn-outline-info mb-4" href="{% url 'supervisor_deposits' %}?page={{ deposits.paginator.num_pages }}&zone={{request.GET.zone}}&from_date={{request.GET.from_date}}&to_date={{request.GET.to_date}}">Last</a>
-    {% endif %}
+    {% endif %} {% endcomment %}
 
     <div class="modal fade" id="vaultAccountModal" tabindex="-1" aria-labelledby="vaultAccountModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -147,4 +189,4 @@
         </div>
       </div>
     </div>
-{% endblock content %}
+    {% endblock content %}

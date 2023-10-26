@@ -2,7 +2,7 @@
 {% load humanize %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
+    <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +15,10 @@
     <link rel="stylesheet" href="{% static 'vault/css/all.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-1.13.6/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/date-1.5.1/datatables.min.css" rel="stylesheet">
+ 
     <script src="https://unpkg.com/htmx.org@1.9.5" integrity="sha384-xcuj3WpfgjlKF+FXhSQFQ0ZNr39ln+hwjN3npfM9VBnUskLolQAcN80McRIVOPuO" crossorigin="anonymous"></script>
 
     <!-- Montserrat Font -->
@@ -255,9 +259,108 @@
     
 {% endif %}
 
-<script src="{% static 'vault/js/jquery-3.2.1.slim.min.js' %}"></script>
-  <script src="{% static 'vault/js/popper.min.js' %}"></script>
-  <script src="{% static 'vault/js/bootstrap.min.js' %}"></script>
-  <script src="{% static 'vault/js/script.js' %}"></script>
+    <script src="{% static 'vault/js/jquery-3.2.1.slim.min.js' %}"></script>
+    <script src="{% static 'vault/js/popper.min.js' %}"></script>
+    <script src="{% static 'vault/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'vault/js/script.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-1.13.6/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/date-1.5.1/datatables.min.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            $("#supervisor_deposits thead tr").clone(true).addClass("filters").appendTo("#supervisor_deposits thead");
+            var table = $("#supervisor_deposits").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": false,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+            "dom": "lBfrtip",
+            "buttons": [
+                {
+                    "extend": "copy",
+                    "text": '<i class="fas fa-clone"></i>',
+                    "className": "btn btn-success",
+                    "titleAttr": "Copy to clipboard",
+                    "title": "Supervisor Deposits"
+                },
+                {
+                    "extend": "excel",
+                    "text": '<i class="fas fa-file-excel"></i>',
+                    "className": "btn btn-danger",
+                    "titleAttr": "Export to Excel",
+                    "title": "Supervisor Deposits"
+                },
+                {
+                    "extend": "print",
+                    "text": '<i class="fas fa-print"></i>',
+                    "className": "btn btn-warning",
+                    "titleAttr": "Print Table",
+                    "title": "Supervisor Deposits",
+                    "customize": function (win) {
+                        $(win.document.body).css("font-size", "10pt");
+                        $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+    
+                    }
+                },
+                {
+                    "extend": "pdf",
+                    "text": '<i class="fas fa-file-pdf"></i>',
+                    "className": "btn btn-info",
+                    "titleAttr": "Export to PDF",
+                    "title": "Supervisor Deposits",
+                    "tableHeader" : {
+                        "alignment": "center",
+                    },
+                    "customize" : function (doc) {
+                        doc.styles.tableHeader.alignment = "center";
+                        doc.styles.tableHeader.fontSize = 10;
+                        doc.styles.tableBodyOdd.alignment = "center";
+                        doc.styles.tableBodyEven.alignment = "center";
+                        doc.defaultStyle.fontSize = 6;
+                        doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                    }
+                },
+            ]
+            });
+        });
+    </script>
+
 </body>
 </html>

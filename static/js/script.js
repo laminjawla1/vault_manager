@@ -18,5 +18,6 @@ function updateLiveDate() {
   let formattedDate = currentDate.toLocaleDateString(undefined, options);
   document.getElementById('current-date').innerHTML = formattedDate;
 }
+
 setInterval(updateLiveDate, 1000);
 updateLiveDate();
