@@ -360,6 +360,94 @@
                 ]
             });
         });
+
+        $(document).ready(function() {
+            $("#dashboard_zones thead tr").clone(true).addClass("filters").appendTo("#dashboard_zones thead");
+            var table = $("#dashboard_zones").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": false,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Zone Floats"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Zone Floats"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Zone Floats",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Zone Floats",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
             // let table = document.getElementById("supervisor_deposits");
             // let totalPrice = 0, priceCell, priceValue;
             // for (var i = 1; i < table.rows.length - 1; i++) {

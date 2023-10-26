@@ -276,3 +276,41 @@ a {
   background-color: #b136a6;
   border: 5px dotted rgb(23, 16, 16) center;
 }
+
+
+.page-item.active .page-link {
+  columns: #fff;
+  background-color: #6c757d;
+  border: 1px solid #6c757d;
+}
+.pagination > li > a {
+  color: #111;
+}
+.pagination > li > a:focus,
+.pagination > li > a:hover,
+.pagination > span > a:focus,
+.pagination > span > a:hover {
+  color: #111;
+  background-color: #d3d3d3;
+  border: 1px solid #6c757d;
+  box-shadow: none;
+}
+.dataTables_info {
+  color: #333;
+  font-weight: bold;
+  float: left;
+  margin-top: -15px !important;
+}
+.dataTables_paginate {
+  margin-top: -5px !important;
+  float: right;
+}
+.dataTables_filter, .dataTables_length, btn-credit {
+  float: right;
+  margin-top: 1px !important;
+  margin-right: 10px !important;
+}
+thead input {
+  width: 100%;
+  text-align: center;
+}

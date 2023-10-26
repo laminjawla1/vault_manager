@@ -19,7 +19,7 @@ from django.views.generic import CreateView, UpdateView
 from agents.models import Branch, Zone
 from django.shortcuts import redirect
 
-from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, 
+from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm,
                     ReturnCashierAccountForm, CashierReportingForm, BankDepositForm, SupervisorReportingForm,
                     CurrencyTransactionsForm, LoanForm, RefundAgentForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
@@ -35,6 +35,7 @@ def index(request):
     else:
         return HttpResponseRedirect(reverse('reports'))
 
+
 @login_required
 def dashboard(request):
     if not request.user.is_staff and not request.user.profile.is_supervisor:
@@ -42,35 +43,30 @@ def dashboard(request):
     if request.user.is_staff:
         account = Account.objects.filter(name='Main Vault').first()
         opening_cash = Deposit.objects.filter(
-                        date__year=timezone.now().year, date__month=timezone.now().month, date__day=timezone.now().day,
-                        supervisor=True, deposit_type="Opening Cash"
-                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+            date__year=timezone.now().year, date__month=timezone.now(
+            ).month, date__day=timezone.now().day,
+            supervisor=True, deposit_type="Opening Cash"
+        ).aggregate(Sum('amount')).get('amount__sum') or 0
         additional_cash = Deposit.objects.filter(
-                        date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
-                        supervisor=True, deposit_type="Additional Cash"
-                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+            date__year=datetime.now().year, date__month=datetime.now(
+            ).month, date__day=datetime.now().day,
+            supervisor=True, deposit_type="Additional Cash"
+        ).aggregate(Sum('amount')).get('amount__sum') or 0
         users = User.objects.count()
         zone_cnt = Zone.objects.count()
 
-        page = request.GET.get('page')
         zones = Zone.objects.all().order_by('name')
-        paginator = Paginator(zones, 15)
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
-
         branches = Branch.objects.count()
         t_withdrawals = len(
             Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
-        withdrawals_amount = Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        withdrawals_amount = Withdraw.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month,
+                                                     date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
         t_borrows = len(
             Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day).all())
-        borrow_amount = Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
-        deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month, 
-                                                    date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        borrow_amount = Borrow.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month,
+                                            date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
+        deposit_amount = Deposit.objects.filter(date__year=datetime.now().year, date__month=datetime.now().month,
+                                                date__day=datetime.now().day).all().aggregate(Sum('amount')).get('amount__sum') or 0
         deposits = Deposit.objects.filter(
             date__year=datetime.now().year,
             date__month=datetime.now().month,
@@ -78,40 +74,37 @@ def dashboard(request):
             supervisor=True
         ).count()
         return render(request, "vault/admin/admin_dashboard.html", {
-            'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals, 
+            'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals,
             'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
-            'deposit_amount': deposit_amount, 'zones': paginator, 'loan_amount': borrow_amount,
-            't_loans': t_borrows, 'current_date' : datetime.now()
+            'deposit_amount': deposit_amount, 'zones': zones, 'loan_amount': borrow_amount,
+            't_loans': t_borrows, 'current_date': datetime.now()
         })
     elif request.user.profile.is_supervisor:
         opening_cash = Deposit.objects.filter(
-                        date__year=timezone.now().year, date__month=timezone.now().month, date__day=timezone.now().day,
-                        supervisor=True, deposit_type="Opening Cash"
-                        ).aggregate(Sum('amount')).get('amount__sum') or 0
+            date__year=timezone.now().year, date__month=timezone.now(
+            ).month, date__day=timezone.now().day,
+            supervisor=True, deposit_type="Opening Cash"
+        ).aggregate(Sum('amount')).get('amount__sum') or 0
         additional_cash = Deposit.objects.filter(
-                        date__year=datetime.now().year, date__month=datetime.now().month, date__day=datetime.now().day,
-                        supervisor=True, deposit_type="Additional Cash"
-                        ).aggregate(Sum('amount')).get('amount__sum') or 0
-        branches = Branch.objects.filter(teller__profile__zone__supervisor=request.user).order_by('name')
+            date__year=datetime.now().year, date__month=datetime.now(
+            ).month, date__day=datetime.now().day,
+            supervisor=True, deposit_type="Additional Cash"
+        ).aggregate(Sum('amount')).get('amount__sum') or 0
+        branches = Branch.objects.filter(
+            teller__profile__zone__supervisor=request.user).order_by('name')
         total_branches = branches.count()
-
-        page = request.GET.get('page', 1)
-        paginator = Paginator(branches, 15)
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
         return render(request, "vault/admin/supervisor_dashboard.html", {
-            'opening_cash': opening_cash, 'additional_cash': additional_cash, 'branches': paginator, 'total_branches': total_branches,
-            'current_date' : datetime.now()
+            'opening_cash': opening_cash, 'additional_cash': additional_cash, 'branches': branches, 'total_branches': total_branches,
         })
-    
+
+
 @login_required
 def cashier_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    deposits = Deposit.objects.filter(cashier=True).all().order_by('status', '-date')
+
+    deposits = Deposit.objects.filter(
+        cashier=True).all().order_by('status', '-date')
     page = request.GET.get('page', 1)
 
     paginator = Paginator(deposits, 20)
@@ -122,18 +115,18 @@ def cashier_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/cashier_deposits.html", {
-        'deposits': paginator, 'current_date' : datetime.now()
+        'deposits': paginator, 'current_date': datetime.now()
     })
+
 
 @login_required
 def supervisor_deposits(request):
     # Authorization
     if not request.user.is_staff:
         raise PermissionDenied()
-    
     # Checking for filtering or new deposit requests
     if request.method == 'POST':
-        form  = CreditSupervisorAccountForm(request.POST)
+        form = CreditSupervisorAccountForm(request.POST)
         if form.is_valid():
             if form.instance.account.balance - form.instance.amount < 0:
                 messages.error(request, "Insufficient Fund 😥")
@@ -142,39 +135,22 @@ def supervisor_deposits(request):
             form.instance.account.balance -= form.instance.amount
             form.instance.account.save()
             form.save()
-            messages.success(request, "Agent's account credited successfully 😊")
+            messages.success(
+                request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
-        
-    deposits = Deposit.objects.filter(supervisor=True)
-    zone = request.GET.get('zone')
-    from_date = request.GET.get('from_date')
-    to_date = request.GET.get('to_date')
-
-    if zone:
-        deposits = deposits.filter(agent__profile__zone__name__icontains=zone)
-    if from_date:
-        deposits = deposits.filter(date__gte=from_date)
-    if to_date:
-        deposits = deposits.filter(date__lte=to_date)
-
-    deposits = deposits.order_by('status', '-date')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(deposits, 30)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
+    deposits = Deposit.objects.filter(
+        supervisor=True).order_by('status', '-date')
     return render(request, "vault/admin/supervisor_deposits.html", {
-        'deposits': paginator, 'form': CreditSupervisorAccountForm, 'current_date': datetime.now(),
+        'deposits': deposits, 'form': CreditSupervisorAccountForm, 'current_date': datetime.now(),
         'zones': Zone.objects.all(),
     })
+
 
 @login_required
 def refunds(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
+
     if request.method == 'POST':
         form = RefundAgentForm(request.POST)
         if form.is_valid():
@@ -202,8 +178,9 @@ def refunds(request):
     except:
         paginator = paginator.page(1)
     return render(request, "vault/refunds.html", {
-        'refunds': paginator, 'current_date' : datetime.now(), 'form': RefundAgentForm
+        'refunds': paginator, 'current_date': datetime.now(), 'form': RefundAgentForm
     })
+
 
 @login_required
 def ledger(request):
@@ -217,7 +194,7 @@ def ledger(request):
         Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
     )
     # logs = Ledger.objects.all().order_by('-date')
-    logs =  []
+    logs = []
     page = request.GET.get('page', 1)
     paginator = Paginator(logs, 25)
     try:
@@ -226,9 +203,10 @@ def ledger(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/ledger.html", {
-        'logs': paginator, 'current_date' : datetime.now(), #'form': LedgerFilterForm,
+        'logs': paginator, 'current_date': datetime.now(),  # 'form': LedgerFilterForm,
         'agents': agents
     })
+
 
 @login_required
 def accounts(request):
@@ -245,19 +223,21 @@ def accounts(request):
         return redirect('accounts')
     return render(request, "vault/vault_accounts.html", {
         'accounts': Account.objects.all().order_by('-date'),
-        'form': UpdateVaultAccountForm, 'current_date' : datetime.now()
+        'form': UpdateVaultAccountForm, 'current_date': datetime.now()
     })
+
 
 @login_required
 def withdrawals(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
+
     if request.method == 'POST':
         form = BankWithdrawalForm(request.POST)
         if form.is_valid():
             form.instance.withdrawer = request.user
-        messages.success(request, "Cash withdrawal request is sent successfully")
+        messages.success(
+            request, "Cash withdrawal request is sent successfully")
         form.save()
         return HttpResponseRedirect(reverse("withdrawals"))
     withdrawals = Withdraw.objects.all().order_by('status', '-date')
@@ -272,11 +252,12 @@ def withdrawals(request):
         'withdrawals': paginator, 'form': BankWithdrawalForm, 'current_date': datetime.now(),
     })
 
+
 @login_required
 def bank_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
+
     if request.method == "POST":
         form = BankDepositForm(request.POST)
         if form.is_valid():
@@ -292,8 +273,9 @@ def bank_deposits(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/admin/bank_deposits.html", {
-        'bank_deposits': paginator, 'form': BankDepositForm, 'current_date' : datetime.now(),
+        'bank_deposits': paginator, 'form': BankDepositForm, 'current_date': datetime.now(),
     })
+
 
 @login_required
 def borrows(request):
@@ -316,14 +298,15 @@ def borrows(request):
         paginator = paginator.page(1)
 
     return render(request, "vault/borrows.html", {
-        'borrows': paginator, 'form': LoanForm, 'current_date' : datetime.now()
+        'borrows': paginator, 'form': LoanForm, 'current_date': datetime.now()
     })
+
 
 @login_required
 def currency_transactions(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
+
     if request.method == 'POST':
         form = CurrencyTransactionsForm(request.POST)
         if form.is_valid():
@@ -353,6 +336,7 @@ def currency_transactions(request):
         'transactions': paginator, 'current_date': datetime.now(), 'form': CurrencyTransactionsForm
     })
 
+
 @login_required
 def my_withdrawals(request):
     if request.user.is_staff or request.user.profile.is_supervisor:
@@ -360,10 +344,12 @@ def my_withdrawals(request):
             form = BankWithdrawalForm(request.POST)
             if form.is_valid():
                 form.instance.withdrawer = request.user
-                messages.success(request, "Cash withdrawal request is sent successfully")
+                messages.success(
+                    request, "Cash withdrawal request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_withdrawals"))
-        withdrawals = Withdraw.objects.filter(withdrawer=request.user).all().order_by('-date')
+        withdrawals = Withdraw.objects.filter(
+            withdrawer=request.user).all().order_by('-date')
 
         page = request.GET.get('page', 1)
         paginator = Paginator(withdrawals, 30)
@@ -372,9 +358,10 @@ def my_withdrawals(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/my_withdrawals.html", {
-            'withdrawals': paginator, 'form': BankWithdrawalForm, 'current_date' : datetime.now()
+            'withdrawals': paginator, 'form': BankWithdrawalForm, 'current_date': datetime.now()
         })
     raise PermissionDenied()
+
 
 @login_required
 def my_borrows(request):
@@ -386,7 +373,8 @@ def my_borrows(request):
                 messages.success(request, "Loan request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_borrows"))
-        borrows = Borrow.objects.filter(borrower=request.user).all().order_by('status', '-date')
+        borrows = Borrow.objects.filter(
+            borrower=request.user).all().order_by('status', '-date')
         page = request.GET.get('page', 1)
 
         paginator = Paginator(borrows, 30)
@@ -397,7 +385,7 @@ def my_borrows(request):
             paginator = paginator.page(1)
 
         return render(request, "vault/my_borrows.html", {
-            'borrows': paginator, 'form': LoanForm, 'current_date' : datetime.now()
+            'borrows': paginator, 'form': LoanForm, 'current_date': datetime.now()
         })
     raise PermissionDenied()
 
@@ -413,9 +401,11 @@ def reports(request):
                 form.instance.opening_cash = form.instance.reporter.profile.opening_cash
                 form.instance.additional_cash = form.instance.reporter.profile.additional_cash
                 form.save()
-                messages.success(request, "Your daily report have been submitted successfully")
+                messages.success(
+                    request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
-        reports = MainVault.objects.filter(reporter=request.user).all().order_by('-date')
+        reports = MainVault.objects.filter(
+            reporter=request.user).all().order_by('-date')
         page = request.GET.get('page', 1)
         paginator = Paginator(reports, 30)
 
@@ -436,9 +426,11 @@ def reports(request):
                 form.instance.opening_cash = form.instance.reporter.profile.opening_cash
                 form.instance.additional_cash = form.instance.reporter.profile.additional_cash
                 form.save()
-                messages.success(request, "Your daily report have been submitted successfully")
+                messages.success(
+                    request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
-        reports = ZoneVault.objects.filter(reporter=request.user).all().order_by('-date')
+        reports = ZoneVault.objects.filter(
+            reporter=request.user).all().order_by('-date')
         page = request.GET.get('page', 1)
         paginator = Paginator(reports, 30)
 
@@ -447,7 +439,7 @@ def reports(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/c_reports.html", {
-            'reports': paginator, 'form': CashierReportingForm, 'current_date' : datetime.now()
+            'reports': paginator, 'form': CashierReportingForm, 'current_date': datetime.now()
         })
     elif request.user.is_staff:
         return HttpResponseRedirect(reverse('daily_cashier_reports'))
@@ -466,7 +458,7 @@ def daily_supervisor_reports(request):
         except:
             paginator = paginator.page(1)
         return render(request, "vault/supervisor_reports.html", {
-            'reports': paginator, 'current_date' : datetime.now()
+            'reports': paginator, 'current_date': datetime.now()
         })
     raise PermissionDenied()
 
@@ -475,17 +467,18 @@ def daily_supervisor_reports(request):
 def daily_cashier_reports(request):
     form = ReturnCashierAccountForm(request.user.profile.zone)
     if request.method == 'POST':
-        form = ReturnCashierAccountForm(request.user.profile.zone, request.POST)
+        form = ReturnCashierAccountForm(
+            request.user.profile.zone, request.POST)
         if form.is_valid():
             form.instance.branch = form.instance.reporter.profile.branch
             form.instance.zone = form.instance.reporter.profile.zone
             form.instance.opening_cash = form.instance.reporter.profile.opening_cash
             form.instance.additional_cash = form.instance.reporter.profile.additional_cash
             form.save()
-            messages.success(request, f"{form.instance.reporter}'s daily report have been submitted successfully")
+            messages.success(
+                request, f"{form.instance.reporter}'s daily report have been submitted successfully")
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
-        
-        
+
     reports = ZoneVault.objects.all().order_by('status', '-date')
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
@@ -499,8 +492,9 @@ def daily_cashier_reports(request):
     except:
         paginator = paginator.page(1)
     return render(request, "vault/cashier_reports.html", {
-        'reports': paginator, 'form': form, 'current_date' : datetime.now()
+        'reports': paginator, 'form': form, 'current_date': datetime.now()
     })
+
 
 class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Deposit
@@ -510,19 +504,20 @@ class UpdateSupervisorAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
     def form_valid(self, form):
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
-    
-    
+
     def test_func(self):
         deposit = self.get_object()
         return not deposit.status
-    
+
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.is_staff:
             raise PermissionDenied()
-        context = super(UpdateSupervisorAccount, self).get_context_data(*args, **kwargs)
+        context = super(UpdateSupervisorAccount,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         context['current_date'] = datetime.now()
         return context
+
 
 class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Deposit
@@ -532,19 +527,20 @@ class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
-    
-    
+
     def test_func(self):
         deposit = self.get_object()
         return not deposit.status
-    
+
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.is_staff:
             raise PermissionDenied()
-        context = super(UpdateCashierAccount, self).get_context_data(*args, **kwargs)
+        context = super(UpdateCashierAccount,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
-    
+
+
 @login_required
 def approve_cashier_deposit(request):
     if request.method == "POST":
@@ -564,7 +560,8 @@ def approve_cashier_deposit(request):
         else:
             messages.error(request, "This deposit is already approved")
     return HttpResponseRedirect(reverse('cashier_deposits'))
-    
+
+
 @login_required
 def approve_cashier_report(request):
     if request.method == "POST":
@@ -582,7 +579,8 @@ def approve_cashier_report(request):
         else:
             messages.error(request, "This report is already approved")
     return HttpResponseRedirect(reverse('daily_cashier_reports'))
-    
+
+
 @login_required
 def approve_supervisor_report(request):
     if request.method == "POST":
@@ -605,7 +603,8 @@ def approve_supervisor_report(request):
         else:
             messages.error(request, "This report is already approved")
     return HttpResponseRedirect(reverse('daily_supervisor_reports'))
-    
+
+
 @login_required
 def disapprove_supervisor_report(request):
     if request.method == "POST":
@@ -621,12 +620,13 @@ def disapprove_supervisor_report(request):
         else:
             messages.error(request, "Couldn't find the Main Vault Account")
             return HttpResponseRedirect("accounts")
-        
+
         report.reporter.profile.closing_balance = report.closing_balance
         report.reporter.profile.save()
         report.save()
         messages.success(request, "Report Approved")
     return HttpResponseRedirect(reverse('daily_supervisor_reports'))
+
 
 @login_required
 def approve_supervisor_deposit(request):
@@ -650,6 +650,7 @@ def approve_supervisor_deposit(request):
             messages.error(request, "This deposit is already approved")
     return HttpResponseRedirect(reverse('supervisor_deposits'))
 
+
 @login_required
 def disapprove_supervisor_deposit(request):
     if request.method == "POST":
@@ -659,6 +660,7 @@ def disapprove_supervisor_deposit(request):
         deposit.delete()
         messages.success(request, "Deposit Disapproved")
     return redirect('supervisor_deposits')
+
 
 @login_required
 def approve_withdrawal_request(request):
@@ -682,6 +684,7 @@ def approve_withdrawal_request(request):
             messages.error(request, "This request is already in approved")
     return HttpResponseRedirect(reverse('withdrawals'))
 
+
 @login_required
 def approve_deposit_request(request):
     if request.method == "POST":
@@ -696,6 +699,7 @@ def approve_deposit_request(request):
         else:
             messages.error(request, "This request is already in approved")
     return HttpResponseRedirect(reverse('bank_deposits'))
+
 
 @login_required
 def approve_borrow_request(request):
@@ -720,6 +724,7 @@ def approve_borrow_request(request):
             messages.error(request, "This request is already in approved")
     return redirect('borrows')
 
+
 @login_required
 def disapprove_withdrawal_request(request):
     if request.method == "POST":
@@ -727,6 +732,7 @@ def disapprove_withdrawal_request(request):
         withdrawal.delete()
         messages.success(request, "Withdrawal Rejected 😔")
         return HttpResponseRedirect(reverse('withdrawals'))
+
 
 @login_required
 def disapprove_cashier_deposit(request):
@@ -738,6 +744,7 @@ def disapprove_cashier_deposit(request):
         messages.success(request, "Deposit Rejected 😔")
     return HttpResponseRedirect(reverse('cashier_deposits'))
 
+
 @login_required
 def disapprove_borrow_request(request):
     if request.method == "POST":
@@ -746,6 +753,7 @@ def disapprove_borrow_request(request):
         messages.success(request, "Borrow Rejected 😔")
         return HttpResponseRedirect(reverse('borrows'))
 
+
 class DepositCash(LoginRequiredMixin, CreateView):
     model = BankDeposit
     template_name = "vault/withdraw_form.html"
@@ -753,12 +761,14 @@ class DepositCash(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.depositor = self.request.user
-        messages.success(self.request, "Cash deposit request is sent successfully")
+        messages.success(
+            self.request, "Cash deposit request is sent successfully")
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
         if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(DepositCash, self).get_context_data(*args, **kwargs)
+            context = super(DepositCash, self).get_context_data(
+                *args, **kwargs)
             context['button'] = 'Withdraw'
             context['legend'] = 'Withdraw Cash'
             return context
@@ -771,18 +781,19 @@ class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):
     fields = ['bank', 'cheque_number', 'amount', 'account', 'comment']
 
     def form_valid(self, form):
-        messages.success(self.request, "Withdrawal request updated successfully.")
+        messages.success(
+            self.request, "Withdrawal request updated successfully.")
         return super().form_valid(form)
-    
-    
+
     def test_func(self):
         withdrawal = self.get_object()
         return not withdrawal.status
-    
+
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.is_staff:
             raise PermissionDenied()
-        context = super(UpdateWithdrawCash, self).get_context_data(*args, **kwargs)
+        context = super(UpdateWithdrawCash, self).get_context_data(
+            *args, **kwargs)
         context['button'] = 'Update'
         context['legend'] = 'Update Withdraw Cash'
         return context
@@ -796,22 +807,22 @@ class UpdateBorrowCash(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, "Borrow request updated successfully.")
         return super().form_valid(form)
-    
-    
+
     def test_func(self):
         borrow = self.get_object()
         return not borrow.status
-    
+
     def get_context_data(self, *args, **kwargs):
         if self.request.user.is_staff or self.request.user.profile.is_supervisor:
-            context = super(UpdateBorrowCash, self).get_context_data(*args, **kwargs)
+            context = super(UpdateBorrowCash, self).get_context_data(
+                *args, **kwargs)
             context['button'] = 'Update'
             context['legend'] = 'Update Cash Borrowed'
             return context
         raise PermissionDenied()
 
 
-class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateView):
+class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = MainVault
     template_name = "vault/daily_report_form.html"
     fields = ['opening_cash', 'additional_cash', 'closing_balance']
@@ -821,7 +832,7 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
         form.instance.zone = self.request.user.profile.zone
         messages.success(self.request, "Daily Report Updated Successfully")
         return super().form_valid(form)
-    
+
     def test_func(self):
         report = self.get_object()
         return not report.status
@@ -829,58 +840,67 @@ class UpdateSupervisorReporting(LoginRequiredMixin, UserPassesTestMixin,UpdateVi
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.profile.is_supervisor:
             raise PermissionDenied()
-        context = super(UpdateSupervisorReporting, self).get_context_data(*args, **kwargs)
+        context = super(UpdateSupervisorReporting,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
+
+
 class UpdateCashierReporting(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['cashier_name', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'opening_cash',
+              'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")
         return super().form_valid(form)
-    
+
     def test_func(self):
         report = self.get_object()
         return not report.status
 
     def get_context_data(self, *args, **kwargs):
-        context = super(UpdateCashierReporting, self).get_context_data(*args, **kwargs)
+        context = super(UpdateCashierReporting,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
+
 
 class UpdateReturnCashierAccount(LoginRequiredMixin, UpdateView):
     model = ZoneVault
     template_name = "vault/daily_report_form.html"
-    fields = ['cashier_name', 'reporter', 'opening_cash', 'additional_cash', 'closing_balance']
+    fields = ['cashier_name', 'reporter', 'opening_cash',
+              'additional_cash', 'closing_balance']
 
     def form_valid(self, form):
         messages.success(self.request, "Daily Report Updated Successfully")
         return super().form_valid(form)
-    
+
     def test_func(self):
         report = self.get_object()
         return not report.status
 
     def get_context_data(self, *args, **kwargs):
-        context = super(UpdateReturnCashierAccount, self).get_context_data(*args, **kwargs)
+        context = super(UpdateReturnCashierAccount,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
+
 
 @login_required
 def generate_cashier_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    cr = ZoneVault.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month, 
+    cr = ZoneVault.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month,
                                   date__day=timezone.now().day).order_by("date")
     if not cr:
         messages.error(request, "No Cashier Reports Available For Export")
         return HttpResponseRedirect(reverse("dashboard"))
 
-    headers  =["ZONE", "BRANCH", "TELLER", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO", 
+    headers = ["ZONE", "BRANCH", "TELLER", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO",
                "USD", "GBP", "CFA", "Swiss Krona", "Nor Krona", "Swiss Franck", "Denish Krona", "Cad Dollar", "DATE"]
-    
+
     response = HttpResponse(
         content_type='text/csv',
         headers={'Content-Disposition': 'attachment; filename="cashier_reports.csv"'},
@@ -890,79 +910,91 @@ def generate_cashier_report(request):
     writer.writerow(headers)
     for r in cr:
         writer.writerow((r.reporter.profile.zone.name, r.reporter.profile.branch.name, f'{r.reporter.first_name} {r.reporter.last_name}',
-                                r.opening_cash, r.additional_cash, r.opening_cash + r.additional_cash, r.closing_balance,
-                                r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona, 
-                                r.cad_dollar, r.date.strftime("%Y-%m-%d")))
+                         r.opening_cash, r.additional_cash, r.opening_cash +
+                         r.additional_cash, r.closing_balance,
+                         r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona,
+                         r.cad_dollar, r.date.strftime("%Y-%m-%d")))
     return response
+
+
 @login_required
 def generate_supervisor_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    cr = MainVault.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month, 
+
+    cr = MainVault.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month,
                                   date__day=timezone.now().day).order_by("date")
     if not cr:
         messages.error(request, "No Supervisor Reports Available For Export")
         return HttpResponseRedirect(reverse("dashboard"))
-    
-    headers  =["ZONE", "SUPERVISOR", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO", 
+
+    headers = ["ZONE", "SUPERVISOR", "OPENING CASH", "ADDITIONAL CASH", "TOTAL", "CLOSING BALANCE", "EURO",
                "USD", "GBP", "CFA", "Swiss Krona", "Nor Krona", "Swiss Franck", "Denish Krona", "Cad Dollar", "STATUS", "DATE"]
-    
+
     response = HttpResponse(
         content_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename="supervisor_reports.csv"'},
+        headers={
+            'Content-Disposition': 'attachment; filename="supervisor_reports.csv"'},
     )
     writer = csv.writer(response)
     writer.writerow(["DAILY SUPERVISOR REPORTS"])
     writer.writerow(headers)
     for r in cr:
         writer.writerow((r.reporter.profile.zone.name, f'{r.reporter.first_name} {r.reporter.last_name}',
-                                r.opening_cash, r.additional_cash, r.opening_cash + r.additional_cash, r.closing_balance,
-                                r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona, 
-                                r.status, r.cad_dollar, r.date.strftime("%Y-%m-%d")))
+                         r.opening_cash, r.additional_cash, r.opening_cash +
+                         r.additional_cash, r.closing_balance,
+                         r.euro, r.us_dollar, r.gbp_pound, r.cfa, r.swiss_krona, r.nor_krona, r.swiss_franck, r.denish_krona,
+                         r.status, r.cad_dollar, r.date.strftime("%Y-%m-%d")))
     return response
+
 
 @login_required
 def generate_withdrawal_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    dw = Withdraw.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month, 
-                                  date__day=timezone.now().day).order_by("date")
+    dw = Withdraw.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month,
+                                 date__day=timezone.now().day).order_by("date")
     if not dw:
         messages.error(request, "No withdrawal Reports Available For Export")
         return HttpResponseRedirect(reverse("dashboard"))
-    headers  =["AGENT FULLNAME", "ZONE", "BANK", "CHEQUE NUMBER", "AMOUNT", "STATUS", "COMMENT", "DATE"]
-    
+    headers = ["AGENT FULLNAME", "ZONE", "BANK",
+               "CHEQUE NUMBER", "AMOUNT", "STATUS", "COMMENT", "DATE"]
+
     response = HttpResponse(
         content_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
+        headers={
+            'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
     )
     writer = csv.writer(response)
     writer.writerow(["DAILY WITHDRAWAL REPORTS"])
     writer.writerow(headers)
     for w in dw:
         writer.writerow((f'{w.withdrawer.first_name} {w.withdrawer.last_name}', w.withdrawer.profile.zone.name, w.bank, w.cheque_number,
-                          w.amount, w.status, w.comment, w.date.strftime("%Y-%m-%d")))
+                         w.amount, w.status, w.comment, w.date.strftime("%Y-%m-%d")))
 
     return response
+
 
 @login_required
 def generate_cashier_deposit_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    cd = Deposit.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month, 
-                                        date__day=timezone.now().day,
-                                        cashier=True).order_by("date")
+
+    cd = Deposit.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month,
+                                date__day=timezone.now().day,
+                                cashier=True).order_by("date")
     if not cd:
-        messages.error(request, "No cashier deposit reports is available for export")
+        messages.error(
+            request, "No cashier deposit reports is available for export")
         return HttpResponseRedirect(reverse('dashboard'))
-    
-    headers  =["ZONE", "BRANCH", "TELLER", "AMOUNT", "DEPOSIT TYPE", "STATUS", "DATE"]
-    
+
+    headers = ["ZONE", "BRANCH", "TELLER",
+               "AMOUNT", "DEPOSIT TYPE", "STATUS", "DATE"]
+
     response = HttpResponse(
         content_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
+        headers={
+            'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
     )
     writer = csv.writer(response)
     writer = csv.writer(response)
@@ -973,23 +1005,27 @@ def generate_cashier_deposit_report(request):
                          d.amount, d.deposit_type, d.status, d.date.strftime("%Y-%m-%d")))
     return response
 
+
 @login_required
 def generate_supervisor_deposit_report(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    sd = Deposit.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month, 
-                                        date__day=timezone.now().day,
-                                        supervisor=True).order_by("date")
+
+    sd = Deposit.objects.filter(date__year=timezone.now().year, date__month=timezone.now().month,
+                                date__day=timezone.now().day,
+                                supervisor=True).order_by("date")
     if not sd:
-        messages.error(request, "No Supervisor Deposit Reports Available For Export")
+        messages.error(
+            request, "No Supervisor Deposit Reports Available For Export")
         return HttpResponseRedirect(reverse("dashboard"))
 
-    headers  =["ZONE", "SUPERVISOR", "AMOUNT", "DEPOSIT TYPE", "STATUS", "DATE"]
-    
+    headers = ["ZONE", "SUPERVISOR", "AMOUNT",
+               "DEPOSIT TYPE", "STATUS", "DATE"]
+
     response = HttpResponse(
         content_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
+        headers={
+            'Content-Disposition': 'attachment; filename="withdrawal_reports.csv"'},
     )
     writer = csv.writer(response)
     writer = csv.writer(response)
@@ -1000,40 +1036,46 @@ def generate_supervisor_deposit_report(request):
                         d.amount, d.deposit_type, d.status, d.date.strftime("%Y-%m-%d")))
     return response
 
+
 class UpdateCurrencyTransact(LoginRequiredMixin, UpdateView):
     model = CurrencyTransaction
     template_name = "vault/currency_transact_form.html"
-    fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
+    fields = ['date', 'customer_name', 'phone_number', 'id_number',
+              'type', 'currency', 'currency_amount', 'rate', 'account']
 
     def form_valid(self, form):
         form.instance.total_amount = form.instance.rate * form.instance.currency_amount
         messages.success(self.request, "Deposit updated successfully.")
         return super().form_valid(form)
-    
-    
+
     def test_func(self):
         deposit = self.get_object()
         return not deposit.status
-    
+
     def get_context_data(self, *args, **kwargs):
         if not self.request.user.is_staff:
             raise PermissionDenied()
-        context = super(UpdateCurrencyTransact, self).get_context_data(*args, **kwargs)
+        context = super(UpdateCurrencyTransact,
+                        self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
+
 
 @login_required
 def disapprove_currency_transaction(request):
     if request.method == "POST":
-        transaction = get_object_or_404(CurrencyTransaction, id=request.POST["id"])
+        transaction = get_object_or_404(
+            CurrencyTransaction, id=request.POST["id"])
         transaction.delete()
         messages.success(request, "Transaction Disapproved 😔")
         return HttpResponseRedirect(reverse('currency_transactions'))
 
+
 @login_required
 def approve_currency_transaction(request):
     if request.method == "POST":
-        transaction = get_object_or_404(CurrencyTransaction, id=request.POST["id"])
+        transaction = get_object_or_404(
+            CurrencyTransaction, id=request.POST["id"])
         transaction.status = True
         account = get_object_or_404(Account, id=transaction.account.id)
         if transaction.type == "buy":
