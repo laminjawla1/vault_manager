@@ -279,9 +279,9 @@ a {
 
 
 .page-item.active .page-link {
-  columns: #fff;
-  background-color: #6c757d;
-  border: 1px solid #6c757d;
+  columns: #fff !important;
+  background-color: #6c757d !important;
+  border: 1px solid #6c757d !important;
 }
 .pagination > li > a {
   color: #111;
@@ -290,27 +290,27 @@ a {
 .pagination > li > a:hover,
 .pagination > span > a:focus,
 .pagination > span > a:hover {
-  color: #111;
-  background-color: #d3d3d3;
-  border: 1px solid #6c757d;
-  box-shadow: none;
+  color: #111 !important;
+  background-color: #d3d3d3 !important;
+  border: 1px solid #6c757d !important;
+  box-shadow: none !important;
 }
 .dataTables_info {
-  color: #333;
-  font-weight: bold;
-  float: left;
+  color: #333 !important;
+  font-weight: bold !important;
+  float: left !important;
   margin-top: -15px !important;
 }
 .dataTables_paginate {
   margin-top: -5px !important;
-  float: right;
+  float: right !important;
 }
 .dataTables_filter, .dataTables_length, btn-credit {
-  float: right;
+  float: right !important;
   margin-top: 1px !important;
   margin-right: 10px !important;
 }
 thead input {
-  width: 100%;
-  text-align: center;
+  width: 100% !important;
+  text-align: center !important;
 }

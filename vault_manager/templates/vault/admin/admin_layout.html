@@ -41,7 +41,7 @@
     {% endif %}
 </head>
 <body style="background-color: rgb(150, 156, 150);">
-{% if user.is_authenticated %}
+{% if user.is_authenticated and user.is_staff or user.profile.is_supervisor %}
     <div class="row" id="bar-container">
         <div class="col-md-2 p-2">
             <p id="top-bar"><i class="mr-2">
@@ -462,6 +462,7 @@
             //     currency: "GMD" // Change to the desired currency code (e.g., "EUR", "JPY", "GBP")
             // }).format(totalPrice);
             // document.getElementById("total-amount").innerHTML = formattedCurrency;
+            
     </script>
 
 </body>
