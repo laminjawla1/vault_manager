@@ -3,12 +3,12 @@ from vault_manager.models import (Account, Deposit, Bank, Withdraw, ZoneVault, B
                                 MainVault, CurrencyTransaction, Currency, Borrow, Refund)
 from django.contrib.auth.models import User
 from django.db.models import Q
+from django.utils import timezone
 
 account_choices = [(account.name, account.name) for account in Account.objects.all()]
 class UpdateVaultAccountForm(forms.Form):
     account = forms.ChoiceField(choices=account_choices,)
     amount = forms.FloatField()
-    type = forms.ChoiceField(choices=[('Credit', 'Credit'),('Debit', 'Debit')])
 
 
 class CreditSupervisorAccountForm(forms.ModelForm):
@@ -31,10 +31,9 @@ class BankWithdrawalForm(forms.ModelForm):
 class LoanForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(LoanForm, self).__init__(*args, **kwargs)
-        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = Borrow
-        fields = ['date', 'customer_name', 'address', 'phone', 'amount', 'account']
+        fields = ['customer_name', 'address', 'phone', 'amount', 'account']
 
 class ReturnCashierAccountForm(forms.ModelForm):
     def __init__(self, zone, *args, **kwargs):
@@ -43,10 +42,9 @@ class ReturnCashierAccountForm(forms.ModelForm):
                                                 profile__is_cashier=True,
                                                 profile__zone=zone
                                             ).order_by("username")
-        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = ZoneVault
-        fields = ['date', 'cashier_name', 'reporter', 'closing_balance']
+        fields = ['cashier_name', 'reporter', 'closing_balance']
 
 class CashierReportingForm(forms.ModelForm):
     class Meta:
@@ -56,10 +54,9 @@ class CashierReportingForm(forms.ModelForm):
 class SupervisorReportingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SupervisorReportingForm, self).__init__(*args, **kwargs)
-        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = MainVault
-        fields = ['date', 'closing_balance']
+        fields = ['closing_balance']
 
 class BankDepositForm(forms.ModelForm):
     class Meta:
@@ -70,11 +67,10 @@ class CurrencyTransactionsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(CurrencyTransactionsForm, self).__init__(*args, **kwargs)
         self.fields['currency'].queryset = Currency.objects.all().order_by("name")
-        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = CurrencyTransaction
-        fields = ['date', 'customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
-
+        fields = ['customer_name', 'phone_number', 'id_number', 'type', 'currency', 'currency_amount', 'rate', 'account']
+    
 agents_choices = [(user, user) for user in User.objects.all()]
 class LedgerFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):

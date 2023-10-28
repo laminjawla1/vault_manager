@@ -15,6 +15,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import CreateView, UpdateView
+from django import forms
 
 from agents.models import Branch, Zone
 from django.shortcuts import redirect
@@ -214,16 +215,12 @@ def accounts(request):
         raise PermissionDenied()
     if request.method == 'POST':
         account = get_object_or_404(Account, name=request.POST.get('account'))
-        if request.POST.get('type') == 'Credit':
-            account.balance += float(request.POST.get('amount'))
-        else:
-            account.balance -= float(request.POST.get('amount'))
+        account.balance += float(request.POST.get('amount'))
         account.save()
         messages.success(request, 'Account updated successfully')
         return redirect('accounts')
     return render(request, "vault/vault_accounts.html", {
-        'accounts': Account.objects.all().order_by('-date'),
-        'form': UpdateVaultAccountForm, 'current_date': datetime.now()
+        'accounts': Account.objects.all(), 'form': UpdateVaultAccountForm
     })
 
 
@@ -323,17 +320,8 @@ def currency_transactions(request):
         form.save()
         return HttpResponseRedirect(reverse("currency_transactions"))
     transactions = CurrencyTransaction.objects.all().order_by('status', '-date')
-    page = request.GET.get('page', 1)
-
-    paginator = Paginator(transactions, 25)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "vault/currency_transactions.html", {
-        'transactions': paginator, 'current_date': datetime.now(), 'form': CurrencyTransactionsForm
+        'transactions': transactions, 'current_date': datetime.now(), 'form': CurrencyTransactionsForm
     })
 
 
@@ -1059,30 +1047,3 @@ class UpdateCurrencyTransact(LoginRequiredMixin, UpdateView):
                         self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
-
-
-@login_required
-def disapprove_currency_transaction(request):
-    if request.method == "POST":
-        transaction = get_object_or_404(
-            CurrencyTransaction, id=request.POST["id"])
-        transaction.delete()
-        messages.success(request, "Transaction Disapproved 😔")
-        return HttpResponseRedirect(reverse('currency_transactions'))
-
-
-@login_required
-def approve_currency_transaction(request):
-    if request.method == "POST":
-        transaction = get_object_or_404(
-            CurrencyTransaction, id=request.POST["id"])
-        transaction.status = True
-        account = get_object_or_404(Account, id=transaction.account.id)
-        if transaction.type == "buy":
-            account.balance -= transaction.total_amount
-        else:
-            account.balance += transaction.total_amount
-        transaction.save()
-        account.save()
-        messages.success(request, "Transaction Approved")
-        return HttpResponseRedirect(reverse('currency_transactions'))

@@ -43,48 +43,13 @@
                 {% else %}
                 <td><i class="fa fa-ban text-danger"></i></td>
                 {% endif %}
-                <td>{{ borrow.date|date:"F d, Y" }}</td>
-                {% if not user.profile.is_staff %}
-                    {% if not borrow.status %}
-                        <td>
-                            <form action="{% url 'approve_borrow_request' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ borrow.id }}" />
-                                <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                            </form>
-                        </td>
-                        <td>
-                        <form action="{% url 'disapprove_borrow_request' %}" method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="hidden" name="id" value="{{ borrow.id }}" />
-                            <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
-                        </form>
-                    </td>
-                    {% endif %}
-                {% endif %}
+                <td>{{ borrow.date }}</td>
             </tr>
         {% endfor %}
     </tbody>
     </table>
   </div>
 </div>
-    {% if borrows.has_previous %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'borrows' %}?page=1">First</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'borrows' %}?page={{ borrows.previous_page_number }}">Previous</a>
-    {% endif %}
-
-    {% for num in borrows.paginator.page_range %}
-      {% if borrows.number == num %}
-        <a class="btn btn-info mb-4" href="{% url 'borrows' %}?page={{ num }}">{{ num }}</a>
-      {% elif num > borrows.number|add:'-3' and num < borrows.number|add:'3' %}
-        <a class="btn btn-outline-info mb-4" href="{% url 'borrows' %}?page={{ num }}">{{ num }}</a>
-      {% endif %}
-    {% endfor %}
-
-    {% if borrows.has_next %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'borrows' %}?page={{ borrows.next_page_number }}">Next</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'borrows' %}?page={{ borrows.paginator.num_pages }}">Last</a>
-    {% endif %}
     <div class="modal fade" id="vaultAccountModal" tabindex="-1" aria-labelledby="vaultAccountModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -96,11 +61,6 @@
             <form method="POST">
               {% csrf_token %}
               <fieldset class="form-group text-white">
-                <div class="form-row">
-                    <div class="form-group col-md-12">
-                      {{ form.date|as_crispy_field }}
-                    </div>
-                </div>
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       {{ form.customer_name|as_crispy_field }}

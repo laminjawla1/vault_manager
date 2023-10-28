@@ -18,7 +18,9 @@ urlpatterns = [
     path("zones/", agent_views.zones, name="zones"),
     path("all_agents/", agent_views.all_agents, name="all_agents"),
     path("branches/", agent_views.branches, name="branches"),
+
     path("vault/", include("vault_manager.urls")),
+    path("actions/", include("actions.urls")),
 
     path("login/", auth_views.LoginView.as_view(template_name="agents/login.html"), name="login"),
     path("logout/", lambda request: logout_with_message(request), name="logout"),

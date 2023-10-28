@@ -3,92 +3,90 @@
 {% load crispy_forms_tags %}
 {% block content %}
 <div class="row">
-  <div class="col-md-12">
+  <div class="col-md-12 bg-dark">
     <h3 class="text-center text-white fw-bold"><i class="fab fa-bitcoin mr-2 fa-2x"></i>Currency Transactions</h3>
-    <small>
-      <a class="btn btn-primary btn-block btn-sm fw-bold btn-info" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Transact</a>
-    </small>
   </div>  
 </div>
-<div class="row">
-  <div class="col-md-12">
-    <table class="table table-striped table-bordered table-dark table-responsive-lg table-hover">
-    <thead class="thead-dark">
-        <tr>
-        <th scope="col">Agent</th>
-        <th scope="col">Customer Name</th>
-        <th scope="col">Phone</th>
-        <th scope="col">Type</th>
-        <th scope="col">Currency</th>
-        <th scope="col">Currency Amount</th>
-        <th scope="col">Rate</th>
-        <th scope="col">Total</th>
-        <th scope="col">Status</th>
-        <th scope="col">Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for transaction in transactions %}
-            <tr>
-                {% if transaction.status or user.profile.is_supervisor %}
-                  <td>{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</td>
-                {% else %}
-                  <td><a href="{% url 'update_currency_transaction' transaction.id %}">{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</a></td>
-                {% endif %}
-                <td>{{ transaction.customer_name }}</td>
-                <td>{{ transaction.phone_number }}</td>
-                <td>{{ transaction.type }}</td>
-                <td>{{ transaction.currency }}</td>
-                <td>{{ transaction.currency_amount|floatformat:2|intcomma }}</td>
-                <td>{{ transaction.rate|floatformat:2|intcomma }}</td>
-                <td>{{ transaction.total_amount|floatformat:2|intcomma }}</td>
-                {% if transaction.status %}
-                    <td><i class="fa fa-check text-success"></i></td>
-                {% else %}
-                <td><i class="fa fa-ban text-danger"></i></td>
-                {% endif %}
-                <td>{{ transaction.date|date:"F d, Y" }}</td>
-                {% if not user.profile.is_supervisor %}
-                    {% if not transaction.status %}
-                        <td>
-                            <form action="{% url 'approve_currency_transaction' %}" method="post" enctype="multipart/form-data">
-                                {% csrf_token %}
-                                <input type="hidden" name="id" value="{{ transaction.id }}" />
-                                <input class="btn btn-sm btn-success mt-2 mb-2" type="submit" value="Approve" />
-                            </form>
-                        </td>
-                        <td>
-                        <form action="{% url 'disapprove_currency_transaction' %}" method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            <input type="hidden" name="id" value="{{ transaction.id }}" />
-                            <input class="btn btn-sm btn-danger mt-2 mb-2" type="submit" value="Reject" />
-                        </form>
-                    </td>
-                    {% endif %}
-                {% endif %}
-            </tr>
-        {% endfor %}
-    </tbody>
-    </table>
+<form action="{% url 'currency_actions' %}" method="post" novalidate id="itemForm">
+  {% csrf_token %}
+  <div class="row mt-1" style="border: 1px solid black; padding: 5px;">
+    <div class="col-md-3">
+      <select name="action" class="form-select" aria-label="Default select example">
+        <option selected disabled>Actions</option>
+        <option value="approve">Approve Selected</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="submit" class="btn btn-primary">Go</button>
+    </div>
+    <div class="col-md-6">
+      <small>
+        <a class="btn btn-danger btn-block btn-sm fw-bold btn-info" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">
+          Create Transaction
+        </a>
+      </small>
+    </div>
   </div>
-</div>
-    {% if transactions.has_previous %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'currency_transactions' %}?page=1">First</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'currency_transactions' %}?page={{ transactions.previous_page_number }}">Previous</a>
-    {% endif %}
+  <div class="row mt-1">
+    <div class="col-md-12">
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="all_selector">
+        <label class="form-check-label text-white fw-bold" for="flexCheckDefault">
+          Check All
+        </label>
+      </div>
+      <table class="table table-striped table-bordered table-dark table-responsive-lg table-hover" id="currency_transactions">
+      <thead class="thead-dark">
+          <tr>
+          <th scope="col"></th>
+          <th scope="col">Agent</th>
+          <th scope="col">Customer Name</th>
+          <th scope="col">Phone</th>
+          <th scope="col">Type</th>
+          <th scope="col">Currency</th>
+          <th scope="col">Currency Amount</th>
+          <th scope="col">Rate</th>
+          <th scope="col">Total</th>
+          <th scope="col">Status</th>
+          <th scope="col">Date</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for transaction in transactions %}
+              <tr>
+                <td>
+                  {% if not transaction.status %}
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="{{transaction.id}}" id="all_selector" name="selected_transactions">
+                    </div>
+                  {% endif %}
+                </td>
+                  {% if transaction.status or user.profile.is_supervisor %}
+                    <td>{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</td>
+                  {% else %}
+                    <td><a href="{% url 'update_currency_transaction' transaction.id %}">{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</a></td>
+                  {% endif %}
+                  <td>{{ transaction.customer_name }}</td>
+                  <td>{{ transaction.phone_number }}</td>
+                  <td>{{ transaction.type }}</td>
+                  <td>{{ transaction.currency }}</td>
+                  <td>{{ transaction.currency_amount|floatformat:2|intcomma }}</td>
+                  <td>{{ transaction.rate|floatformat:2|intcomma }}</td>
+                  <td>{{ transaction.total_amount|floatformat:2|intcomma }}</td>
+                  {% if transaction.status %}
+                  <td class="text-success fw-bold">Approved <i class="fa fa-check text-success"></i></td>
+                  {% else %}
+                  <td class="text-danger fw-bold">Pending <i class="fa fa-ban text-danger"></i></td>
+                  {% endif %}
+                  <td>{{ transaction.date|date:"Y-m-d H:i:s" }}</td>
+              </tr>
+          {% endfor %}
+      </tbody>
+      </table>
+    </div>
+  </div>
 
-    {% for num in transactions.paginator.page_range %}
-      {% if transactions.number == num %}
-        <a class="btn btn-info mb-4" href="{% url 'currency_transactions' %}?page={{ num }}">{{ num }}</a>
-      {% elif num > transactions.number|add:'-3' and num < transactions.number|add:'3' %}
-        <a class="btn btn-outline-info mb-4" href="{% url 'currency_transactions' %}?page={{ num }}">{{ num }}</a>
-      {% endif %}
-    {% endfor %}
-
-    {% if transactions.has_next %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'currency_transactions' %}?page={{ transactions.next_page_number }}">Next</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'currency_transactions' %}?page={{ transactions.paginator.num_pages }}">Last</a>
-    {% endif %}
+</form>
     <div class="modal fade" id="vaultAccountModal" tabindex="-1" aria-labelledby="vaultAccountModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -100,12 +98,7 @@
             <form method="POST">
               {% csrf_token %}
               <fieldset class="form-group" style="color: rgb(23, 235, 164);">
-                <div class="form-row">
-                  <div class="form-group col-md-12">
-                    {{ form.date|as_crispy_field }}
-                  </div>
-              </div>
-                <div class="form-row">
+              <div class="form-row">
                   <div class="form-group col-md-4">
                     {{ form.customer_name|as_crispy_field }}
                   </div>
@@ -147,4 +140,16 @@
         </div>
       </div>
     </div>
+    <script>
+      let all_selector = document.getElementById("all_selector");
+      all_selector.addEventListener('change', function() {
+        if (this.checked) {
+          const checkboxes = document.querySelectorAll('input[name="selected_transactions"]');
+          checkboxes.forEach(checkbox => checkbox.checked = true);
+        } else {
+          const checkboxes = document.querySelectorAll('input[name="selected_transactions"]');
+          checkboxes.forEach(checkbox => checkbox.checked = false);
+        }
+      });
+  </script>
 {% endblock content %}

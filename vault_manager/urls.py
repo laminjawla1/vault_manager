@@ -9,13 +9,10 @@ from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, m
                     daily_cashier_reports, approve_cashier_report, approve_supervisor_report, generate_cashier_deposit_report, 
                     generate_cashier_report, generate_supervisor_report, generate_withdrawal_report, generate_supervisor_deposit_report,
                     UpdateBorrowCash, borrows, approve_borrow_request, disapprove_borrow_request, currency_transactions,
-                    UpdateCurrencyTransact, approve_currency_transaction, disapprove_currency_transaction,
-                    UpdateReturnCashierAccount, bank_deposits, disapprove_cashier_deposit, disapprove_supervisor_deposit)
+                    UpdateCurrencyTransact, UpdateReturnCashierAccount, bank_deposits, disapprove_cashier_deposit, disapprove_supervisor_deposit)
 
 urlpatterns = [
-    path("disapprove_currency_transaction", disapprove_currency_transaction, name="disapprove_currency_transaction"),
     path("disapprove_cashier_deposit", disapprove_cashier_deposit, name="disapprove_cashier_deposit"),
-    path("approve_currency_transaction", approve_currency_transaction, name="approve_currency_transaction"),
     path("currency_transactions", currency_transactions, name="currency_transactions"),
     path("currency_transactions/<int:pk>/update/", UpdateCurrencyTransact.as_view(), name="update_currency_transaction"),
     path("generate_supervisor_deposit_report/", generate_supervisor_deposit_report, name="generate_supervisor_deposit_report"),

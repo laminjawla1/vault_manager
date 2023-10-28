@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MainVault, ZoneVault, Withdraw, Deposit, Account, Bank, Currency
+from .models import MainVault, ZoneVault, Withdraw, Deposit, Account, Bank, Currency, CurrencyTransaction
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 import csv
@@ -172,3 +172,4 @@ admin.site.register(Deposit, DepositAdmin)
 admin.site.register(Withdraw, WithdrawAdmin)
 admin.site.register(Bank, BankAdmin)
 admin.site.register(Currency)
+admin.site.register(CurrencyTransaction)
