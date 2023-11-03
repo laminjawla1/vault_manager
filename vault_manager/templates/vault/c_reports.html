@@ -6,21 +6,21 @@
   <div class="col-md-12">
     <h1 class="text-center text-white fw-white"><i class="fa fa-folder-open fa-2x mr-3"></i>My Daily Reports</h1>
     <small>
-      <a class="btn btn-danger fw-bold btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Send New Report</a>
+      <a class="btn btn-success fw-bold btn-block btn-sm" data-bs-toggle="modal" data-bs-target="#vaultAccountModal" data-bs-whatever="@mdo" href="#">Send New Report</a>
     </small>
   </div>
 </div>
-<div class="row">
+<div class="row mt-2">
   <div class="col-md-12">
-    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+    <table class="table table-striped table-bordered table-dark table-hover table-responsive-lg" id="c_reports">
     <thead class="thead-dark text-center">
         <tr>
           <th scope="col">Teller</th>
           <th scope="col">Opening Cash</th>
           <th scope="col">Additional Cash</th>
           <th scope="col">Closing Balance</th>
-          <th scope="col">Date</th>
           <th scope="col">Status</th>
+          <th scope="col">Date</th>
         </tr>
     </thead>
     <tbody>
@@ -30,35 +30,20 @@
                 <td>{{report.opening_cash|floatformat:2|intcomma}}</td>
                 <td>{{report.additional_cash|floatformat:2|intcomma }}</td>
                 <td>{{report.closing_balance|floatformat:2|intcomma }}</td>
-                <td>{{ report.date|date:"F d, Y" }}</td>
-                {% if report.status %}
-                <td style="color: green">Approved</td>
+                {% if report.approved %}
+                  <td class="text-success fw-bold">Approved <i class="fa fa-check text-success"></i></td>
+                {% elif report.disapproved %}
+                  <td class="text-danger fw-bold">Disapproved <i class="fa fa-close"></i></td>
                 {% else %}
-                    <td style="color: red">Pending</td>
+                  <td class="text-warning fw-bold">Pending <i class="fa fa-ban"></i></td>
                 {% endif %}
+                <td>{{ report.date|date:"Y-m-d H:i:s" }}</td>
             </tr>
         {% endfor %}
     </tbody>
     </table>
   </div>
 </div>
-    {% if reports.has_previous %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page=1">First</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.previous_page_number }}">Previous</a>
-    {% endif %}
-
-    {% for num in reports.paginator.page_range %}
-      {% if reports.number == num %}
-        <a class="btn btn-info mb-4" href="{% url 'reports' %}?page={{ num }}">{{ num }}</a>
-      {% elif num > reports.number|add:'-3' and num < page_obj.number|add:'3' %}
-        <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ num }}">{{ num }}</a>
-      {% endif %}
-    {% endfor %}
-
-    {% if reports.has_next %}
-      <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.next_page_number }}">Next</a>
-      <a class="btn btn-outline-info mb-4" href="{% url 'reports' %}?page={{ reports.paginator.num_pages }}">Last</a>
-    {% endif %}
     <div class="modal fade" id="vaultAccountModal" tabindex="-1" aria-labelledby="vaultAccountModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">

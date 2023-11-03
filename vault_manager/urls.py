@@ -5,9 +5,8 @@ from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, m
                     UpdateSupervisorAccount, UpdateCashierAccount,
                     approve_supervisor_deposit, refunds, ledger, accounts, withdrawals,
                     UpdateWithdrawCash, my_withdrawals, UpdateBankDeposit,
-                    daily_supervisor_reports, UpdateSupervisorReporting, UpdateCashierReporting, disapprove_supervisor_report,
-                    daily_cashier_reports, approve_cashier_report, approve_supervisor_report,
-                    UpdateBorrowCash, borrows, currency_transactions, UpdateCurrencyTransact, UpdateReturnCashierAccount,
+                    daily_supervisor_reports, UpdateSupervisorReporting, UpdateCashierReporting,
+                    daily_cashier_reports, UpdateBorrowCash, borrows, currency_transactions, UpdateCurrencyTransact, UpdateReturnCashierAccount,
                     bank_deposits, disapprove_supervisor_deposit)
 
 urlpatterns = [
@@ -31,11 +30,8 @@ urlpatterns = [
     path("deposits/supervisors", supervisor_deposits, name='supervisor_deposits'),
     path("dashboard/", dashboard, name="dashboard"),
     path("me/reports/", reports, name='reports'),
-    path("approve_supervisor_report", approve_supervisor_report, name="approve_supervisor_report"),
-    path("approve_cashier_report", approve_cashier_report, name="approve_cashier_report"),
     path("disapprove_supervisor_deposit", disapprove_supervisor_deposit, name="disapprove_supervisor_deposit"),
     path("approve_supervisor_deposit", approve_supervisor_deposit, name="approve_supervisor_deposit"),
-    path("disapprove_supervisor_report", disapprove_supervisor_report, name="disapprove_supervisor_report"),
     path("supervisor_deposit/<int:pk>/update", UpdateSupervisorAccount.as_view(), name="update_supervisor_deposit"),
     path("cashier_deposit/<int:pk>/update", UpdateCashierAccount.as_view(), name="update_cashier_deposit"),
     path("withdrawals/<int:pk>/update", UpdateWithdrawCash.as_view(), name="update_withdrawal_request"),

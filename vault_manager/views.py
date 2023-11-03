@@ -10,12 +10,11 @@ from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db.models import Sum
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.generic import CreateView, UpdateView
-from django import forms
+from django.views.generic import UpdateView
 
 from agents.models import Branch, Zone
 from django.shortcuts import redirect
@@ -77,8 +76,7 @@ def dashboard(request):
         return render(request, "vault/admin/admin_dashboard.html", {
             'account': account, 'users': users, 'zone_cnt': zone_cnt, 'branches': branches, 't_withdrawals': t_withdrawals,
             'withdrawals_amount': withdrawals_amount, 'deposits': deposits, 'opening_cash': opening_cash, 'additional_cash': additional_cash,
-            'deposit_amount': deposit_amount, 'zones': zones, 'loan_amount': borrow_amount,
-            't_loans': t_borrows, 'current_date': datetime.now()
+            'deposit_amount': deposit_amount, 'zones': zones, 'loan_amount': borrow_amount, 't_loans': t_borrows
         })
     elif request.user.profile.is_supervisor:
         opening_cash = Deposit.objects.filter(
@@ -140,31 +138,18 @@ def refunds(request):
     if request.method == 'POST':
         form = RefundAgentForm(request.POST)
         if form.is_valid():
-            if form.instance.refund_type == "Add to Opening Cash":
+            if form.instance.refund_type == "Opening":
                 form.instance.agent.profile.balance += form.instance.amount
                 form.instance.agent.profile.opening_cash += form.instance.amount
-            elif form.instance.refund_type == "Add to Additional Cash":
+            else:
                 form.instance.agent.profile.balance += form.instance.amount
                 form.instance.agent.profile.additional_cash += form.instance.amount
-            elif form.instance.refund_type == 'Deduct from Opening Cash':
-                form.instance.agent.profile.balance -= form.instance.amount
-                form.instance.agent.profile.opening_cash -= form.instance.amount
-            else:
-                form.instance.agent.profile.balance -= form.instance.amount
-                form.instance.agent.profile.additional_cash -= form.instance.amount
             messages.success(request, "Agent's account refunded successfully")
             form.instance.agent.profile.save()
             form.save()
             return redirect('refunds')
-    refunds = Refund.objects.all().order_by('-date')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(refunds, 30)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
     return render(request, "vault/refunds.html", {
-        'refunds': paginator, 'current_date': datetime.now(), 'form': RefundAgentForm
+        'refunds': Refund.objects.all(), 'form': RefundAgentForm
     })
 
 
@@ -328,19 +313,8 @@ def my_borrows(request):
                 messages.success(request, "Loan request is sent successfully")
                 form.save()
                 return HttpResponseRedirect(reverse("my_borrows"))
-        borrows = Borrow.objects.filter(
-            borrower=request.user).all().order_by('status', '-date')
-        page = request.GET.get('page', 1)
-
-        paginator = Paginator(borrows, 30)
-
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
-
         return render(request, "vault/my_borrows.html", {
-            'borrows': paginator, 'form': LoanForm, 'current_date': datetime.now()
+            'borrows': Borrow.objects.filter(borrower=request.user), 'form': LoanForm
         })
     raise PermissionDenied()
 
@@ -359,17 +333,8 @@ def reports(request):
                 messages.success(
                     request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
-        reports = MainVault.objects.filter(
-            reporter=request.user).all().order_by('-date')
-        page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 30)
-
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
         return render(request, "vault/s_reports.html", {
-            'reports': paginator, 'form': SupervisorReportingForm, 'current_date': datetime.now()
+            'reports': MainVault.objects.filter(reporter=request.user), 'form': SupervisorReportingForm
         })
     elif request.user.profile.is_cashier:
         if request.method == 'POST':
@@ -384,36 +349,16 @@ def reports(request):
                 messages.success(
                     request, "Your daily report have been submitted successfully")
                 return HttpResponseRedirect(reverse("reports"))
-        reports = ZoneVault.objects.filter(
-            reporter=request.user).all().order_by('-date')
-        page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 30)
-
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
         return render(request, "vault/c_reports.html", {
-            'reports': paginator, 'form': CashierReportingForm, 'current_date': datetime.now()
+            'reports': ZoneVault.objects.filter(reporter=request.user), 'form': CashierReportingForm
         })
-    elif request.user.is_staff:
-        return HttpResponseRedirect(reverse('daily_cashier_reports'))
-    raise PermissionDenied()
 
 
 @login_required
 def daily_supervisor_reports(request):
     if request.user.is_staff:
-        reports = MainVault.objects.all().order_by('status', '-date')
-        page = request.GET.get('page', 1)
-        paginator = Paginator(reports, 25)
-
-        try:
-            paginator = paginator.page(page)
-        except:
-            paginator = paginator.page(1)
         return render(request, "vault/supervisor_reports.html", {
-            'reports': paginator, 'current_date': datetime.now()
+            'reports': MainVault.objects.all()
         })
     raise PermissionDenied()
 
@@ -434,20 +379,12 @@ def daily_cashier_reports(request):
                 request, f"{form.instance.reporter}'s daily report have been submitted successfully")
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
 
-    reports = ZoneVault.objects.all().order_by('status', '-date')
+    reports = ZoneVault.objects.all()
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
-            reporter__profile__zone=request.user.profile.zone
-        ).all().order_by('status', '-date')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(reports, 30)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
+            reporter__profile__zone=request.user.profile.zone)
     return render(request, "vault/cashier_reports.html", {
-        'reports': paginator, 'form': form, 'current_date': datetime.now()
+        'reports': reports, 'form': form
     })
 
 
@@ -494,71 +431,6 @@ class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                         self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
-
-@login_required
-def approve_cashier_report(request):
-    if request.method == "POST":
-        report = get_object_or_404(ZoneVault, id=request.POST["id"])
-        if not report.status:
-            report.status = True
-            report.reporter.profile.opening_cash = 0
-            report.reporter.profile.additional_cash = 0
-            report.reporter.profile.balance = 0
-            report.approved_by = request.user
-            report.reporter.profile.closing_balance = report.closing_balance
-            report.reporter.profile.save()
-            report.save()
-            messages.success(request, "Report Approved")
-        else:
-            messages.error(request, "This report is already approved")
-    return HttpResponseRedirect(reverse('daily_cashier_reports'))
-
-
-@login_required
-def approve_supervisor_report(request):
-    if request.method == "POST":
-        report = get_object_or_404(MainVault, id=request.POST["id"])
-        if not report.status:
-            report.status = True
-            report.reporter.profile.opening_cash = 0
-            report.reporter.profile.additional_cash = 0
-            report.reporter.profile.balance = 0
-            report.approved_by = request.user
-
-            account = Account.objects.filter(name="Main Vault").first()
-            account.balance += report.closing_balance
-            account.save()
-
-            report.reporter.profile.closing_balance = report.closing_balance
-            report.reporter.profile.save()
-            report.save()
-            messages.success(request, "Report Approved")
-        else:
-            messages.error(request, "This report is already approved")
-    return HttpResponseRedirect(reverse('daily_supervisor_reports'))
-
-
-@login_required
-def disapprove_supervisor_report(request):
-    if request.method == "POST":
-        report = get_object_or_404(MainVault, id=request.POST["id"])
-        report.status = True
-        report.reporter.profile.opening_cash = 0
-        report.reporter.profile.additional_cash = 0
-
-        account = Account.objects.filter(name="Main Vault").first()
-        if account:
-            account.balance += report.closing_balance
-            account.save()
-        else:
-            messages.error(request, "Couldn't find the Main Vault Account")
-            return HttpResponseRedirect("accounts")
-
-        report.reporter.profile.closing_balance = report.closing_balance
-        report.reporter.profile.save()
-        report.save()
-        messages.success(request, "Report Approved")
-    return HttpResponseRedirect(reverse('daily_supervisor_reports'))
 
 
 @login_required
@@ -609,7 +481,6 @@ def approve_deposit_request(request):
         else:
             messages.error(request, "This request is already in approved")
     return HttpResponseRedirect(reverse('bank_deposits'))
-
 
 
 class UpdateWithdrawCash(LoginRequiredMixin, UpdateView):

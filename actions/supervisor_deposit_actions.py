@@ -45,6 +45,6 @@ def disapprove_supervisor_deposit(id):
     deposit = get_object_or_404(Deposit, id=id)
     if not deposit.disapproved:
         deposit.disapproved = True
-        deposit.agent.profile.zone.supervisor.profile.balance += deposit.amount
-        deposit.agent.profile.zone.supervisor.profile.save()
+        deposit.account.balance += deposit.amount
+        deposit.account.save()
         deposit.save()

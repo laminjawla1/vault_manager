@@ -1,6 +1,6 @@
 {% load static %}
 {% load humanize %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
     <link rel="icon" href="{% static 'vault/images/fevicon.jpg' %}" type="image/gif" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-1.13.6/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/date-1.5.1/datatables.min.css" rel="stylesheet">
   </head>
   <body style="background-color: rgb(150, 156, 150);" class="container">
     {% if user.is_authenticated %}
@@ -83,5 +85,109 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js" integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+" crossorigin="anonymous"></script>
     <script src="{% static 'vault/js/script.js' %}"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-1.13.6/b-2.4.2/b-html5-2.4.2/b-print-2.4.2/date-1.5.1/datatables.min.js"></script>
+
+    <script>
+
+        // Data Table for c_reports
+        $(document).ready(function() {
+            $("#c_reports thead tr").clone(true).addClass("filters").appendTo("#c_reports thead");
+            var table = $("#c_reports").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                "order": [[5, "desc"]],
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4, 5]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+    </script>
+
+
   </body>
 </html>
