@@ -12,7 +12,6 @@ from .forms import CreditMyCashierForm, ProfileUpdateForm, UserUpdateForm, Retur
 from .models import Branch, Zone
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from vault_manager.utils import gmd
 from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import datetime
@@ -31,28 +30,15 @@ def profile(request):
     profile_form = ProfileUpdateForm(instance=request.user.profile) 
     route = 'agents/profile.html' if request.user.profile.is_cashier else 'agents/admin/profile.html'
     return render(request, route, {
-        'user_form': UserUpdateForm(instance=request.user), 'current_date': datetime.now(),
-        'profile_form': profile_form
+        'user_form': UserUpdateForm(instance=request.user), 'profile_form': profile_form
     })
-
 
 @login_required
 def all_agents(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
-    agents = User.objects.filter(
-        Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
-    ).order_by('username')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(agents, 50)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "agents/all_agents.html", {
-        'agents': paginator, 'current_date': datetime.now()
+        'agents': User.objects.filter(Q(profile__is_supervisor=True) | Q(profile__is_cashier=True))
     })
 
 
@@ -67,18 +53,8 @@ def zones(request):
     total_ad = Zone.objects.all().aggregate(Sum('supervisor__profile__additional_cash')).get('supervisor__profile__additional_cash__sum')
     total_cs = Zone.objects.all().aggregate(Sum('supervisor__profile__closing_balance')).get('supervisor__profile__closing_balance__sum')
 
-    page = request.GET.get('page', 1)
-
-    paginator = Paginator(zones, 12)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "agents/zones.html", {
-        'zones': paginator, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs,
-        'current_date': datetime.now()
+        'zones': zones, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs
     })
 
 
@@ -86,19 +62,9 @@ def zones(request):
 def branches(request):
     if not request.user.is_staff:
         raise PermissionDenied()
-    
     branches = Branch.objects.all().order_by('name')
-    page = request.GET.get('page', 1)
-
-    paginator = Paginator(branches, 12)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "agents/branches.html", {
-        'branches': paginator, 'form': ReturnCashierAccountForm, 'current_date': datetime.now()
+        'branches': branches, 'form': ReturnCashierAccountForm
     })
 
 
@@ -114,17 +80,8 @@ def my_branches(request):
             aggregate(Sum('teller__profile__closing_balance')).get('teller__profile__closing_balance__sum')
     
     branches = Branch.objects.filter(teller__profile__zone=request.user.profile.zone).order_by('name')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(branches, 25)
-
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "agents/my_branches.html", {
-        'branches': paginator, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs,
-        'current_date': datetime.now()
+        'branches': branches, 'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs,
     })
 
 @login_required
@@ -142,7 +99,7 @@ def branches_under(request, username):
     branches = Branch.objects.filter(teller__profile__zone__supervisor__username=username).order_by('name')
     return render(request, "agents/branches_under.html", {
         'branches': branches, 'caption': f'Branches Under {username}',
-        'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs, 'current_date': datetime.now()
+        'total_op': total_op, 'total_ad': total_ad, 'total_cs': total_cs
     })
 
 @login_required
@@ -165,13 +122,6 @@ def my_deposits(request):
             form.save()
         return HttpResponseRedirect(reverse('my_deposits'))
     zone = request.user.profile.zone
-    deposits = Deposit.objects.filter(cashier=True, agent__profile__zone=zone).order_by('status', '-date')
-    page = request.GET.get('page', 1)
-    paginator = Paginator(deposits, 30)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
     return render(request, "agents/my_deposits.html", {
-        'deposits': paginator, 'form': form, 'current_date': datetime.now()
+        'deposits': Deposit.objects.filter(cashier=True, agent__profile__zone=zone), 'form': form
     })

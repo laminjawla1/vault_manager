@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MainVault, ZoneVault, Withdraw, Deposit, Account, Bank, Currency, CurrencyTransaction
+from .models import MainVault, ZoneVault, Withdraw, Deposit, Account, Bank, Currency, CurrencyTransaction, BankDeposit
 from django.http import HttpResponse
 from django.core.exceptions import PermissionDenied
 import csv
@@ -140,22 +140,30 @@ class AccountAdmin(admin.ModelAdmin):
     readonly_fields = ['balance', 'date']
 
 class DepositAdmin(admin.ModelAdmin):
-    list_display = ['agent', 'amount', 'account', 'deposit_type', 'cashier', 'supervisor', 'status', 'date']
-    filter_by = ['agent__username', 'account__name', 'deposit_type', 'cashier', 'supervisor', 'status', 'date']
-    list_filter = ['deposit_type', 'cashier', 'supervisor', 'status', 'date']
-    sortable_by = ['agent__name', 'amount', 'account__name', 'deposit_type', 'status', 'date']
-    search_fields = ['agent__username', 'amount', 'account__name', 'deposit_type', 'status', 'date']
-    readonly_fields = ['agent', 'amount', 'account', 'deposit_type', 'status', 'date', 'cashier', 'supervisor']
+    list_display = ['agent', 'amount', 'account', 'deposit_type', 'cashier', 'supervisor', 'date']
+    filter_by = ['agent__username', 'account__name', 'deposit_type', 'cashier', 'supervisor', 'date']
+    list_filter = ['deposit_type', 'cashier', 'supervisor', 'date']
+    sortable_by = ['agent__name', 'amount', 'account__name', 'deposit_type', 'date']
+    search_fields = ['agent__username', 'amount', 'account__name', 'deposit_type', 'date']
+    readonly_fields = ['agent', 'amount', 'account', 'deposit_type', 'date', 'cashier', 'supervisor']
     actions = [generate_cashier_deposit_report, generate_supervisor_deposit_report]
 
 class WithdrawAdmin(admin.ModelAdmin):
-    list_display = ['withdrawer', 'amount', 'account', 'status', 'date']
-    sortable_by = ['withdrawer__username', 'amount', 'account__name', 'status', 'date']
-    filter_by = ['withdrawer__username', 'status', 'date']
-    list_filter = ['withdrawer__username', 'status', 'date']
-    search_fields = ['withdrawer__username', 'amount', 'account__name', 'status', 'date']
-    readonly_fields = ['withdrawer', 'amount', 'account', 'status', 'date']
+    list_display = ['withdrawer', 'amount', 'account', 'date']
+    sortable_by = ['withdrawer__username', 'amount', 'account__name', 'date']
+    filter_by = ['withdrawer__username', 'approved', 'disapproved', 'date']
+    list_filter = ['withdrawer__username', 'date']
+    search_fields = ['withdrawer__username', 'amount', 'account__name', 'date']
+    readonly_fields = ['withdrawer', 'amount', 'account', 'date']
     actions = [generate_withdrawal_report]
+
+class BankDepositAdmin(admin.ModelAdmin):
+    list_display = ['depositor', 'amount', 'account', 'date']
+    sortable_by = ['depositor__username', 'amount', 'account__name', 'date']
+    filter_by = ['depositor__username', 'approved', 'disapproved', 'date']
+    list_filter = ['depositor__username', 'date']
+    search_fields = ['depositor__username', 'amount', 'account__name', 'date']
+    readonly_fields = ['depositor', 'amount', 'account', 'date']
 
 class BankAdmin(admin.ModelAdmin):
     list_display = ['name', 'date']
@@ -170,6 +178,7 @@ admin.site.register(ZoneVault, ZoneVaultAdmin)
 admin.site.register(Account, AccountAdmin)
 admin.site.register(Deposit, DepositAdmin)
 admin.site.register(Withdraw, WithdrawAdmin)
+admin.site.register(BankDeposit, BankDepositAdmin)
 admin.site.register(Bank, BankAdmin)
 admin.site.register(Currency)
 admin.site.register(CurrencyTransaction)

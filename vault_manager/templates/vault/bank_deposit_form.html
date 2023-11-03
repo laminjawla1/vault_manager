@@ -1,0 +1,18 @@
+{% extends "vault/admin/admin_layout.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6 mx-auto text-white">
+        <form method="POST" class="content-section">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                <legend class="border-bottom mb-4">{{ legend }}</legend>
+                {{ form|crispy }}
+            </fieldset>
+            <div class="form-group">
+                <button class="btn btn-outline-info" type="submit">{{button}}</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

@@ -2,7 +2,7 @@
 {% load humanize %}
 {% block content %}
 <h1 class="text-white text-center fw-bold"><i class="fas fa-user-plus mr-3 fa-2x"></i>{{ caption }}</h1>
-<table class="table table-striped table-bordered table-dark table-hover table-responsive-lg">
+<table class="table table-striped table-bordered table-dark table-hover table-responsive-lg" id="branches_under">
     <thead class="thead-dark text-center">
     <tr>
       <th scope="col">Zone</th>
@@ -16,36 +16,18 @@
     {% for branch in branches %}
     <tr>
         <td>{{ branch.teller.profile.zone }}</td>
-        {% if branch.teller %}
-          <td>{{ branch.name }}</t>
-        {% if branch.teller.profile.cash %}
-          <td style="color: green">{{ branch.teller.profile.opening_cash|floatformat:2|intcomma }}</td>
-        {% else %}
-          <td style="color: red">{{ branch.teller.profile.opening_cash|floatformat:2|intcomma }}</td>
-        {% endif %}
-        {% if branch.teller.profile.add_cash %}
-          <td style="color: green">{{ branch.teller.profile.additional_cash|floatformat:2|intcomma }}</td>
-        {% else %}
-          <td style="color: red">{{ branch.teller.profile.additional_cash|floatformat:2|intcomma }}</td>
-        {% endif %}
-      {% else %}
-        <td style="color: red">N/A</td>
-        <td style="color: red">N/A</td>
-        <td style="color: red">N/A</td>
-        {% endif %}
-      {% if branch.teller %}
-        <td style="color: red">{{ branch.teller.profile.closing_balance|floatformat:2|intcomma }}</td>
-      {% else %}
-        <td style="color: red">N/A</td>
-      {% endif %}
+        <td>{{ branch.name }}</t>
+        <td>{{ branch.teller.profile.opening_cash|floatformat:2|intcomma }}</td>
+        <td>{{ branch.teller.profile.additional_cash|floatformat:2|intcomma }}</td>
+        <td >{{ branch.teller.profile.closing_balance|floatformat:2|intcomma }}</td>
     </tr>
     {% endfor %}
-    <tr>
-      <td scope="col" colspan="2" style="font-weight: bold; color: red;">TOTALS</td>
-      <td scope="col" style="font-weight: bold;">{{ total_op|floatformat:2|intcomma }}</td>
-      <td scope="col" style="font-weight: bold;">{{ total_ad|floatformat:2|intcomma }}</td>
-      <td scope="col" style="font-weight: bold;">{{ total_cs|floatformat:2|intcomma }}</td>
-    </tr>
-</tbody>
+  </tbody>
+  <tr>
+    <td scope="col" colspan="2" class="fw-bold text-danger">TOTALS</td>
+    <td scope="col" class="fw-bold text-success">{{ total_op|floatformat:2|intcomma }}</td>
+    <td scope="col" class="fw-bold text-success">{{ total_ad|floatformat:2|intcomma }}</td>
+    <td scope="col" class="fw-bold text-success">{{ total_cs|floatformat:2|intcomma }}</td>
+  </tr>
 </table>
 {% endblock content %}

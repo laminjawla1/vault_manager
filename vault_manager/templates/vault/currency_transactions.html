@@ -9,11 +9,12 @@
 </div>
 <form action="{% url 'currency_actions' %}" method="post" novalidate id="itemForm">
   {% csrf_token %}
-  <div class="row mt-1" style="border: 1px solid black; padding: 5px;">
+  <div class="row mt-1" style="border: 2px solid black; padding: 5px;">
     <div class="col-md-3">
       <select name="action" class="form-select" aria-label="Default select example">
         <option selected disabled>Actions</option>
-        <option value="approve">Approve Selected</option>
+        <option value="approve">Approve Selected Items</option>
+        <option value="disapprove">Disapprove Selected Items</option>
       </select>
     </div>
     <div class="col-md-3">
@@ -55,13 +56,13 @@
           {% for transaction in transactions %}
               <tr>
                 <td>
-                  {% if not transaction.status %}
+                  {% if not transaction.approved and not transaction.disapproved %}
                     <div class="form-check">
                       <input class="form-check-input" type="checkbox" value="{{transaction.id}}" id="all_selector" name="selected_transactions">
                     </div>
                   {% endif %}
                 </td>
-                  {% if transaction.status or user.profile.is_supervisor %}
+                  {% if transaction.approved or transaction.disapproved or user.profile.is_supervisor %}
                     <td>{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</td>
                   {% else %}
                     <td><a href="{% url 'update_currency_transaction' transaction.id %}">{{ transaction.agent.first_name}} {{ transaction.agent.last_name}}</a></td>
@@ -73,10 +74,12 @@
                   <td>{{ transaction.currency_amount|floatformat:2|intcomma }}</td>
                   <td>{{ transaction.rate|floatformat:2|intcomma }}</td>
                   <td>{{ transaction.total_amount|floatformat:2|intcomma }}</td>
-                  {% if transaction.status %}
+                  {% if transaction.approved %}
                   <td class="text-success fw-bold">Approved <i class="fa fa-check text-success"></i></td>
+                  {% elif transaction.disapproved %}
+                  <td class="text-danger fw-bold">Disapproved <i class="fa fa-close"></i></td>
                   {% else %}
-                  <td class="text-danger fw-bold">Pending <i class="fa fa-ban text-danger"></i></td>
+                  <td class="text-warning fw-bold">Pending <i class="fa fa-ban"></i></td>
                   {% endif %}
                   <td>{{ transaction.date|date:"Y-m-d H:i:s" }}</td>
               </tr>
@@ -140,16 +143,4 @@
         </div>
       </div>
     </div>
-    <script>
-      let all_selector = document.getElementById("all_selector");
-      all_selector.addEventListener('change', function() {
-        if (this.checked) {
-          const checkboxes = document.querySelectorAll('input[name="selected_transactions"]');
-          checkboxes.forEach(checkbox => checkbox.checked = true);
-        } else {
-          const checkboxes = document.querySelectorAll('input[name="selected_transactions"]');
-          checkboxes.forEach(checkbox => checkbox.checked = false);
-        }
-      });
-  </script>
 {% endblock content %}

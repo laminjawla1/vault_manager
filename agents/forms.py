@@ -24,10 +24,9 @@ class CreditMyCashierForm(forms.ModelForm):
                                             profile__is_cashier=True, 
                                             profile__zone=supervisor_zone
                                         )
-        self.fields['date'].widget=forms.DateInput(attrs={'type': 'date'})
     class Meta:
         model = Deposit
-        fields = ['date', 'agent', 'deposit_type', 'amount']
+        fields = ['agent', 'deposit_type', 'amount']
 
 
 class ReturnCashierAccountForm(forms.ModelForm):

@@ -286,9 +286,10 @@
                 "bInfo": true,
                 "bSort": true,
                 "sortable": true,
+                "order": [[6, "desc"]],
                 initComplete: function() {
                     var api = this.api();
-                    api.columns([0, 1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
+                    api.columns([1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
                         var cell = $(".filters th").eq(
                             $(api.column(colIdx).header()).index()
                         );
@@ -361,106 +362,6 @@
                 ]
             });
         });
-
-        // Data Table for Zones on the dashboard
-        $(document).ready(function() {
-            $("#dashboard_zones thead tr").clone(true)
-            var table = $("#dashboard_zones").DataTable({
-                "paging": false,
-                "lengthChange": true,
-                "searching": true,
-                "bInfo": false,
-                "order": [[10, "desc"]],
-                initComplete: function() {
-                    var api = this.api();
-                    api.columns([0, 1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
-                        var cell = $(".filters th").eq(
-                            $(api.column(colIdx).header()).index()
-                        );
-                        var title = $(cell).text();
-                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
-
-                        $(
-                            "input",
-                            $(".filters th").eq($(api.column(colIdx).header()).index())
-                        ).off("keyup change").on("keyup change", function(e) {
-                            e.stopPropagation();
-                            $(this).attr("title", $(this).val());
-                            var pattern = '({search})';
-                            var cursorPosition = this.selectionStart;
-                            api.column(colIdx).search(this.value != "" ? pattern.replace('{search}', '(((' + this.value + ')))') : "",
-                            this.value != "",
-                            this.value == ""
-                            ).draw();
-                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
-                        });
-                    });
-                },
-                // Buttons
-                "dom": "lBfrtip",
-                "buttons": [
-                    {
-                        "extend": "copy",
-                        "text": '<i class="fas fa-clone"></i>',
-                        "className": "btn btn-success",
-                        "titleAttr": "Copy to clipboard",
-                        "title": "Zone Floats"
-                    },
-                    {
-                        "extend": "excel",
-                        "text": '<i class="fas fa-file-excel"></i>',
-                        "className": "btn btn-danger",
-                        "titleAttr": "Export to Excel",
-                        "title": "Zone Floats"
-                    },
-                    {
-                        "extend": "print",
-                        "text": '<i class="fas fa-print"></i>',
-                        "className": "btn btn-warning",
-                        "titleAttr": "Print Table",
-                        "title": "Zone Floats",
-                        "customize": function (win) {
-                            $(win.document.body).css("font-size", "10pt");
-                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
-        
-                        }
-                    },
-                    {
-                        "extend": "pdf",
-                        "text": '<i class="fas fa-file-pdf"></i>',
-                        "className": "btn btn-info",
-                        "titleAttr": "Export to PDF",
-                        "title": "Zone Floats",
-                        "tableHeader" : {
-                            "alignment": "center",
-                        },
-                        "customize" : function (doc) {
-                            doc.styles.tableHeader.alignment = "center";
-                            doc.styles.tableHeader.fontSize = 10;
-                            doc.styles.tableBodyOdd.alignment = "center";
-                            doc.styles.tableBodyEven.alignment = "center";
-                            doc.defaultStyle.fontSize = 6;
-                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
-                        }
-                    },
-                ]
-            });
-        });
-            // let table = document.getElementById("supervisor_deposits");
-            // let totalPrice = 0, priceCell, priceValue;
-            // for (var i = 1; i < table.rows.length - 1; i++) {
-            //     priceCell = table.rows[i].cells[2].textContent.replace(/,/g, "")
-            //     priceValue = parseFloat(priceCell);
-            //     if (!isNaN(priceValue)) {
-            //         totalPrice += priceValue;
-            //     }
-            // }
-            // var formattedCurrency = new Intl.NumberFormat(undefined, {
-            //     style: "currency",
-            //     currency: "GMD" // Change to the desired currency code (e.g., "EUR", "JPY", "GBP")
-            // }).format(totalPrice);
-            // document.getElementById("total-amount").innerHTML = formattedCurrency;
-            
 
         // Data Table for currency_transactions
         $(document).ready(function() {
@@ -476,7 +377,7 @@
                 "order": [[10, "desc"]],
                 initComplete: function() {
                     var api = this.api();
-                    api.columns([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]).eq(0).each(function(colIdx) {
+                    api.columns([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).eq(0).each(function(colIdx) {
                         var cell = $(".filters th").eq(
                             $(api.column(colIdx).header()).index()
                         );
@@ -507,7 +408,97 @@
                         "text": '<i class="fas fa-clone"></i>',
                         "className": "btn btn-success",
                         "titleAttr": "Copy to clipboard",
-                        "title": "Supervisor Deposits"
+                        "title": "Currency Transaction"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Currency Transaction"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Currency Transaction",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Currency Transaction",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+        // Data Table for loans
+        $(document).ready(function() {
+            $("#loans thead tr").clone(true).addClass("filters").appendTo("#loans thead");
+            var table = $("#loans").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                "order": [[7, "desc"]],
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([1, 2, 3, 4, 5, 6, 7]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Currency Transaction"
                     },
                     {
                         "extend": "excel",
@@ -550,9 +541,634 @@
             });
         });
 
+        // Data Table for all_withdrawals
+        $(document).ready(function() {
+            $("#all_withdrawals thead tr").clone(true).addClass("filters").appendTo("#all_withdrawals thead");
+            var table = $("#all_withdrawals").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                "order": [[6, "desc"]],
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([1, 2, 3, 4, 5, 6, 7]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
 
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
         
-    </script>
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
 
+
+        // Data Table for all_agents
+        $(document).ready(function() {
+            $("#all_agents thead tr").clone(true).addClass("filters").appendTo("#all_agents thead");
+            var table = $("#all_agents").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4, 5]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+
+        // Data Table for zones
+        $(document).ready(function() {
+            $("#zones thead tr").clone(true).addClass("filters").appendTo("#zones thead");
+            var table = $("#zones").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+        // Data Table for branches_under
+        $(document).ready(function() {
+            $("#branches_under thead tr").clone(true).addClass("filters").appendTo("#branches_under thead");
+            var table = $("#branches_under").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+        // Data Table for branches
+        $(document).ready(function() {
+            $("#branches thead tr").clone(true).addClass("filters").appendTo("#branches thead");
+            var table = $("#branches").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([0, 1, 2, 3, 4, 5]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+        // Data Table for branches
+        $(document).ready(function() {
+            $("#bank_deposits thead tr").clone(true).addClass("filters").appendTo("#bank_deposits thead");
+            var table = $("#bank_deposits").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                "order": [[5, "desc"]],
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([1, 2, 3, 4, 5]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+        // Data Table for cashier_deposits
+        $(document).ready(function() {
+            $("#cashier_deposits thead tr").clone(true).addClass("filters").appendTo("#cashier_deposits thead");
+            var table = $("#cashier_deposits").DataTable({
+                "paging": true,
+                "pageLength": 20,
+                "lengthChange": true,
+                "autoWidth": true,
+                "searching": true,
+                "ordering": true,
+                "bInfo": true,
+                "bSort": true,
+                "sortable": true,
+                "order": [[6, "desc"]],
+                initComplete: function() {
+                    var api = this.api();
+                    api.columns([1, 2, 3, 4, 5, 6]).eq(0).each(function(colIdx) {
+                        var cell = $(".filters th").eq(
+                            $(api.column(colIdx).header()).index()
+                        );
+                        var title = $(cell).text();
+                        $(cell).html('<input class="form-control" type="text" placeholder="' + title + '">');
+
+                        $(
+                            "input",
+                            $(".filters th").eq($(api.column(colIdx).header()).index())
+                        ).off("keyup change").on("keyup change", function(e) {
+                            e.stopPropagation();
+                            $(this).attr("title", $(this).val());
+                            var regexr = '({search})';
+                            var cursorPosition = this.selectionStart;
+                            api.column(colIdx).search(this.value != "" ? regexr.replace('{search}', '(((' + this.value + ')))') : "",
+                            this.value != "",
+                            this.value == ""
+                            ).draw();
+                            $(this).focus()[0].setSelectionRange(cursorPosition, cursorPosition);
+                        });
+                    });
+                },
+                // Buttons
+                "dom": "lBfrtip",
+                "buttons": [
+                    {
+                        "extend": "copy",
+                        "text": '<i class="fas fa-clone"></i>',
+                        "className": "btn btn-success",
+                        "titleAttr": "Copy to clipboard",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "excel",
+                        "text": '<i class="fas fa-file-excel"></i>',
+                        "className": "btn btn-danger",
+                        "titleAttr": "Export to Excel",
+                        "title": "Withdrawals"
+                    },
+                    {
+                        "extend": "print",
+                        "text": '<i class="fas fa-print"></i>',
+                        "className": "btn btn-warning",
+                        "titleAttr": "Print Table",
+                        "title": "Withdrawals",
+                        "customize": function (win) {
+                            $(win.document.body).css("font-size", "10pt");
+                            $(win.document.body).find("table").addClass("compact").css("font-size", "inherit");
+        
+                        }
+                    },
+                    {
+                        "extend": "pdf",
+                        "text": '<i class="fas fa-file-pdf"></i>',
+                        "className": "btn btn-info",
+                        "titleAttr": "Export to PDF",
+                        "title": "Withdrawals",
+                        "tableHeader" : {
+                            "alignment": "center",
+                        },
+                        "customize" : function (doc) {
+                            doc.styles.tableHeader.alignment = "center";
+                            doc.styles.tableHeader.fontSize = 10;
+                            doc.styles.tableBodyOdd.alignment = "center";
+                            doc.styles.tableBodyEven.alignment = "center";
+                            doc.defaultStyle.fontSize = 6;
+                            doc.content[1].table.widths = Array(doc.content[1].table.body[1].length + 1).join("*").split('');
+                        }
+                    },
+                ]
+            });
+        });
+
+    </script>
 </body>
 </html>
