@@ -101,8 +101,9 @@ def dashboard(request):
 def cashier_deposits(request):
     if not request.user.is_staff:
         raise PermissionDenied()
+    today = datetime.now()
     return render(request, "vault/cashier_deposits.html", {
-        'deposits': Deposit.objects.filter(cashier=True)
+        'deposits': Deposit.objects.filter(cashier=True, date__year=today.year, date__month=today.month, date__day=today.day)
     })
 
 
@@ -125,8 +126,10 @@ def supervisor_deposits(request):
             messages.success(
                 request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
+    year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
+    deposits = Deposit.objects.filter(supervisor=True, date__year=year, date__month=month, date__day=day)
     return render(request, "vault/admin/supervisor_deposits.html", {
-        'deposits': Deposit.objects.filter(supervisor=True), 'form': CreditSupervisorAccountForm
+        'deposits': deposits, 'form': CreditSupervisorAccountForm
     })
 
 
