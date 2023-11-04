@@ -373,7 +373,7 @@ def daily_cashier_reports(request):
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
 
     year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-    reports = ZoneVault.objects.all(
+    reports = ZoneVault.objects.filter(
         date__year=year, date__month=month, date__day=day)
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
