@@ -278,7 +278,7 @@
             $("#supervisor_deposits thead tr").clone(true).addClass("filters").appendTo("#supervisor_deposits thead");
             var table = $("#supervisor_deposits").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": false,
                 "searching": true,
@@ -368,7 +368,7 @@
             $("#currency_transactions thead tr").clone(true).addClass("filters").appendTo("#currency_transactions thead");
             var table = $("#currency_transactions").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "searching": true,
                 "ordering": true,
@@ -456,7 +456,7 @@
             $("#loans thead tr").clone(true).addClass("filters").appendTo("#loans thead");
             var table = $("#loans").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -546,7 +546,7 @@
             $("#all_withdrawals thead tr").clone(true).addClass("filters").appendTo("#all_withdrawals thead");
             var table = $("#all_withdrawals").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -637,7 +637,7 @@
             $("#all_agents thead tr").clone(true).addClass("filters").appendTo("#all_agents thead");
             var table = $("#all_agents").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -727,7 +727,7 @@
             $("#zones thead tr").clone(true).addClass("filters").appendTo("#zones thead");
             var table = $("#zones").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -816,7 +816,7 @@
             $("#branches_under thead tr").clone(true).addClass("filters").appendTo("#branches_under thead");
             var table = $("#branches_under").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -905,7 +905,7 @@
             $("#branches thead tr").clone(true).addClass("filters").appendTo("#branches thead");
             var table = $("#branches").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -989,12 +989,12 @@
             });
         });
 
-        // Data Table for branches
+        // Data Table for bank_deposits
         $(document).ready(function() {
             $("#bank_deposits thead tr").clone(true).addClass("filters").appendTo("#bank_deposits thead");
             var table = $("#bank_deposits").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1084,7 +1084,7 @@
             $("#cashier_deposits thead tr").clone(true).addClass("filters").appendTo("#cashier_deposits thead");
             var table = $("#cashier_deposits").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1169,12 +1169,12 @@
             });
         });
 
-        // Data Table for cashier_deposits
+        // Data Table for refunds
         $(document).ready(function() {
             $("#refunds thead tr").clone(true).addClass("filters").appendTo("#refunds thead");
             var table = $("#refunds").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1264,7 +1264,7 @@
             $("#daily_supervisor_reports thead tr").clone(true).addClass("filters").appendTo("#daily_supervisor_reports thead");
             var table = $("#daily_supervisor_reports").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1354,7 +1354,7 @@
             $("#daily_cashier_reports thead tr").clone(true).addClass("filters").appendTo("#daily_cashier_reports thead");
             var table = $("#daily_cashier_reports").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1444,7 +1444,7 @@
             $("#my_deposits thead tr").clone(true).addClass("filters").appendTo("#my_deposits thead");
             var table = $("#my_deposits").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1534,7 +1534,7 @@
             $("#my_borrows thead tr").clone(true).addClass("filters").appendTo("#my_borrows thead");
             var table = $("#my_borrows").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1624,7 +1624,7 @@
             $("#my_withdrawals thead tr").clone(true).addClass("filters").appendTo("#my_withdrawals thead");
             var table = $("#my_withdrawals").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1714,7 +1714,7 @@
             $("#s_reports thead tr").clone(true).addClass("filters").appendTo("#s_reports thead");
             var table = $("#s_reports").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
@@ -1803,7 +1803,7 @@
         $(document).ready(function() {
             var table = $("#my_branches").DataTable({
                 "paging": true,
-                "pageLength": 20,
+                "pageLength": 50,
                 "lengthChange": true,
                 "autoWidth": true,
                 "searching": true,
