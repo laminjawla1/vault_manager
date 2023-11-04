@@ -2,12 +2,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
 from .views import (cashier_deposits, supervisor_deposits, dashboard, reports, my_borrows, bank_deposits,
-                    UpdateSupervisorAccount, UpdateCashierAccount,
-                    approve_supervisor_deposit, refunds, ledger, accounts, withdrawals,
-                    UpdateWithdrawCash, my_withdrawals, UpdateBankDeposit,
-                    daily_supervisor_reports, UpdateSupervisorReporting, UpdateCashierReporting,
-                    daily_cashier_reports, UpdateBorrowCash, borrows, currency_transactions, UpdateCurrencyTransact, UpdateReturnCashierAccount,
-                    bank_deposits, disapprove_supervisor_deposit)
+                    UpdateSupervisorAccount, UpdateCashierAccount, refunds, ledger, accounts, withdrawals,
+                    UpdateWithdrawCash, my_withdrawals, UpdateBankDeposit,daily_supervisor_reports, UpdateSupervisorReporting,
+                    UpdateCashierReporting, daily_cashier_reports, UpdateBorrowCash, borrows, currency_transactions,
+                    UpdateCurrencyTransact, UpdateReturnCashierAccount, bank_deposits)
 
 urlpatterns = [
     path("currency_transactions", currency_transactions, name="currency_transactions"),
@@ -30,8 +28,6 @@ urlpatterns = [
     path("deposits/supervisors", supervisor_deposits, name='supervisor_deposits'),
     path("dashboard/", dashboard, name="dashboard"),
     path("me/reports/", reports, name='reports'),
-    path("disapprove_supervisor_deposit", disapprove_supervisor_deposit, name="disapprove_supervisor_deposit"),
-    path("approve_supervisor_deposit", approve_supervisor_deposit, name="approve_supervisor_deposit"),
     path("supervisor_deposit/<int:pk>/update", UpdateSupervisorAccount.as_view(), name="update_supervisor_deposit"),
     path("cashier_deposit/<int:pk>/update", UpdateCashierAccount.as_view(), name="update_cashier_deposit"),
     path("withdrawals/<int:pk>/update", UpdateWithdrawCash.as_view(), name="update_withdrawal_request"),

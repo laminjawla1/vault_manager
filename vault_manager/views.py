@@ -127,7 +127,8 @@ def supervisor_deposits(request):
                 request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
     year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-    deposits = Deposit.objects.filter(supervisor=True, date__year=year, date__month=month, date__day=day)
+    deposits = Deposit.objects.filter(
+        supervisor=True, date__year=year, date__month=month, date__day=day)
     return render(request, "vault/admin/supervisor_deposits.html", {
         'deposits': deposits, 'form': CreditSupervisorAccountForm
     })
@@ -161,24 +162,13 @@ def ledger(request):
     if not request.user.is_staff:
         raise PermissionDenied()
     if request.method == 'POST':
-        print(request.POST['agent'])
-        print(request.POST.get('date_from'))
-        print(request.POST.get('date_to'))
+        ...
     agents = User.objects.filter(
         Q(profile__is_supervisor=True) | Q(profile__is_cashier=True)
     )
     # logs = Ledger.objects.all().order_by('-date')
-    logs = []
-    page = request.GET.get('page', 1)
-    paginator = Paginator(logs, 25)
-    try:
-        paginator = paginator.page(page)
-    except:
-        paginator = paginator.page(1)
-
     return render(request, "vault/ledger.html", {
-        'logs': paginator, 'current_date': datetime.now(),  # 'form': LedgerFilterForm,
-        'agents': agents
+        'logs': [], 'agents': agents
     })
 
 
@@ -382,10 +372,12 @@ def daily_cashier_reports(request):
                 request, f"{form.instance.reporter}'s daily report have been submitted successfully")
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
 
-    reports = ZoneVault.objects.all()
+    year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
+    reports = ZoneVault.objects.all(
+        date__year=year, date__month=month, date__day=day)
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
-            reporter__profile__zone=request.user.profile.zone)
+            reporter__profile__zone=request.user.profile.zone, date__year=year, date__month=month, date__day=day)
     return render(request, "vault/cashier_reports.html", {
         'reports': reports, 'form': form
     })
@@ -434,40 +426,6 @@ class UpdateCashierAccount(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
                         self).get_context_data(*args, **kwargs)
         context['button'] = 'Update'
         return context
-
-
-@login_required
-def approve_supervisor_deposit(request):
-    if request.method == "POST":
-        deposit = get_object_or_404(Deposit, id=request.POST["id"])
-        if not deposit.status:
-            deposit.status = True
-            deposit.approved_by = request.user
-            if deposit.deposit_type == "Opening Cash":
-                deposit.agent.profile.opening_cash = deposit.amount
-                deposit.agent.profile.balance += deposit.amount
-                deposit.agent.profile.closing_balance = 0
-                deposit.approved_by = request.user
-            else:
-                deposit.agent.profile.additional_cash += deposit.amount
-                deposit.agent.profile.balance += deposit.amount
-            deposit.agent.profile.save()
-            deposit.save()
-            messages.success(request, "Deposit Approved")
-        else:
-            messages.error(request, "This deposit is already approved")
-    return HttpResponseRedirect(reverse('supervisor_deposits'))
-
-
-@login_required
-def disapprove_supervisor_deposit(request):
-    if request.method == "POST":
-        deposit = get_object_or_404(Deposit, id=request.POST["id"])
-        deposit.account.balance += deposit.amount
-        deposit.account.save()
-        deposit.delete()
-        messages.success(request, "Deposit Disapproved")
-    return redirect('supervisor_deposits')
 
 
 @login_required
