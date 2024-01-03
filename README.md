@@ -103,6 +103,6 @@ It also provides all information about the zone, their opening, additional and c
 
 This contains all the packages and modules used in building the project.
 
-### Run.py
+### manage.py
 
 The engine which let you run the program from a development environment.
