@@ -1,31 +1,28 @@
-import csv
 import os
+import csv
+from .utils import gmd
 from datetime import datetime
-
+from django.db.models import Q
+from django.urls import reverse
+from django.db.models import Sum
+from django.utils import timezone
 from django.contrib import messages
+from django.shortcuts import redirect
+from agents.models import Branch, Zone
+from django.core.mail import send_mail
+from django.views.generic import UpdateView
+from django.core.paginator import Paginator
+from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth.models import User
-from django.core.exceptions import PermissionDenied
-from django.core.mail import send_mail
-from django.core.paginator import Paginator
-from django.db.models import Sum
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
-from django.utils import timezone
-from django.views.generic import UpdateView
-
-from agents.models import Branch, Zone
-from django.shortcuts import redirect
-
-from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm,
-                    ReturnCashierAccountForm, CashierReportingForm, BankDepositForm, SupervisorReportingForm,
-                    CurrencyTransactionsForm, LoanForm, RefundAgentForm)
 from .models import (Account, BankDeposit, Borrow, CurrencyTransaction,
-                     Deposit, MainVault, Refund, Withdraw, ZoneVault)
-from .utils import gmd
-from django.db.models import Q
+                    Deposit, MainVault, Refund, Withdraw, ZoneVault)
+from .forms import (UpdateVaultAccountForm, CreditSupervisorAccountForm, BankWithdrawalForm, ReturnCashierAccountForm, CashierReportingForm,
+                    BankDepositForm, SupervisorReportingForm,
+                    CurrencyTransactionsForm, LoanForm, RefundAgentForm)
 
 
 @login_required
@@ -103,7 +100,7 @@ def cashier_deposits(request):
         raise PermissionDenied()
     today = datetime.now()
     return render(request, "vault/cashier_deposits.html", {
-        'deposits': Deposit.objects.filter(cashier=True, date__year=today.year, date__month=today.month, date__day=today.day)
+        'deposits': Deposit.objects.filter(cashier=True, date__year=today.year, date__month=today.month)
     })
 
 
@@ -127,8 +124,9 @@ def supervisor_deposits(request):
                 request, "Agent's account credited successfully 😊")
             return HttpResponseRedirect(reverse('supervisor_deposits'))
     year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-    deposits = Deposit.objects.filter(
-        supervisor=True, date__year=year, date__month=month, date__day=day)
+    deposits = Deposit.objects.filter(supervisor=True, date__year=year, date__month=month)
+    # deposits = Deposit.objects.filter(
+    #     supervisor=True, date__year=year, date__month=month, date__day=day)
     return render(request, "vault/admin/supervisor_deposits.html", {
         'deposits': deposits, 'form': CreditSupervisorAccountForm
     })
@@ -373,11 +371,10 @@ def daily_cashier_reports(request):
             return HttpResponseRedirect(reverse("daily_cashier_reports"))
 
     year, month, day = datetime.now().year, datetime.now().month, datetime.now().day
-    reports = ZoneVault.objects.filter(
-        date__year=year, date__month=month, date__day=day)
+    reports = ZoneVault.objects.filter(date__year=year, date__month=month)
     if request.user.profile.is_supervisor:
         reports = ZoneVault.objects.filter(
-            reporter__profile__zone=request.user.profile.zone, date__year=year, date__month=month, date__day=day)
+            reporter__profile__zone=request.user.profile.zone, date__year=year, date__month=month)
     return render(request, "vault/cashier_reports.html", {
         'reports': reports, 'form': form
     })
